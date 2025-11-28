@@ -1,0 +1,16 @@
+# 作業系統檔案
+.DS_Store
+Thumbs.db
+
+# 編輯器設定
+.vscode/
+.idea/
+
+# 暫存檔案
+*.log
+*.tmp
+
+# 不需要版本控制的檔案
+node_modules/
+dist/
+.env
