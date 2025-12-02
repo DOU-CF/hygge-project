@@ -348,11 +348,27 @@ code .
 - ✅ 配置 GitHub Actions 自動部署
 - ✅ 首次部署成功
 
-### 2024/11/29（Day 2）
+## 📅 開發日誌
 
-- [ ] 建立完整 HTML 結構
-- [ ] 實作 Navbar 與 Dock
-- [ ] 學習 HTML 語意化標籤
+### Day 2 (2024/12/02) - HTML 結構與基礎 UI ✅
+
+**完成項目：**
+
+- [x] 建立完整的 HTML 語意化結構
+- [x] 實作導覽列（毛玻璃效果）
+- [x] 實作 Dock 工具列（毛玻璃效果）
+- [x] 5 個工具圖示（待辦清單、番茄鐘、喝水提醒、天氣、筆記）
+- [x] 基礎 CSS 樣式（Flexbox 佈局）
+- [x] hover 動畫效果
+
+**學習重點：**
+
+- HTML 語意化標籤
+- `data-*` 自訂屬性
+- `rgba()` 半透明顏色
+- `backdrop-filter: blur()` 毛玻璃效果
+- CSS Flexbox 佈局
+- `transition` 動畫過渡
 
 ---
 
