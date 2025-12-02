@@ -3,13 +3,76 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Hygge - 個人生活管理平台，整合待辦清單、番茄鐘、天氣等工具"
+    />
     <title>Hygge - 個人生活管理平台</title>
     <link rel="stylesheet" href="css/style.css" />
   </head>
   <body>
-    <h1>Hygge 專案啟動！</h1>
-    <p>這是測試頁面</p>
-    <p>✅ Git 和 GitHub Actions 設定完成！</p>
+    <!-- ========== 1. 導覽列 ========== -->
+    <header class="navbar">
+      <div class="container">
+        <div class="logo">
+          <span class="logo-icon">🏠</span>
+          <span class="logo-text">Hygge</span>
+        </div>
+        <nav class="nav-menu">
+          <button class="btn-icon" aria-label="設定">
+            <span>⚙️</span>
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <!-- ========== 2. 主工作區域 ========== -->
+    <main class="workspace" id="workspace">
+      <div class="welcome-message">
+        <h1>歡迎來到 Hygge</h1>
+        <p>點擊下方工具開始管理你的一天</p>
+      </div>
+    </main>
+
+    <!-- ========== 3. Dock 工具列 ========== -->
+    <div class="dock" id="dock">
+      <div class="dock-container">
+        <!-- 待辦清單 -->
+        <div class="dock-item" data-widget="todo">
+          <span class="dock-icon">📝</span>
+          <span class="dock-label">待辦清單</span>
+        </div>
+
+        <!-- 番茄鐘 -->
+        <div class="dock-item" data-widget="pomodoro">
+          <span class="dock-icon">🍅</span>
+          <span class="dock-label">番茄鐘</span>
+        </div>
+
+        <!-- 喝水提醒 -->
+        <div class="dock-item" data-widget="water">
+          <span class="dock-icon">💧</span>
+          <span class="dock-label">喝水提醒</span>
+        </div>
+
+        <!-- 天氣 -->
+        <div class="dock-item" data-widget="weather">
+          <span class="dock-icon">🌤️</span>
+          <span class="dock-label">天氣</span>
+        </div>
+
+        <!-- 筆記 -->
+        <div class="dock-item" data-widget="todo">
+          <span class="dock-icon">📒</span>
+          <span class="dock-label">筆記</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== 4. 小工具容器（之後會用到） ========== -->
+    <div class="widgets-container" id="widgets-container">
+      <!-- 小工具視窗會動態插入這裡 -->
+    </div>
 
     <script src="js/app.js"></script>
   </body>
