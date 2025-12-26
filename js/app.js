@@ -7,7 +7,7 @@ console.log("現在時間：", now.toLocaleString("zh-TW"));
 
 // Day 4: Dock 點擊互動
 // 選取所有 Dock 工具
-const dockItems = document.SelectorAll('.dock-item');
+const dockItems = document.querySelectorAll('.dock-item');
 
 
 // 為每個工具加上點擊事件
