@@ -168,6 +168,6 @@ h1 {
 
 /* 顯示狀態 */
 .overlay.active,
-.widgetcard.active {
+.widget-card.active {
   display: block;
 }
