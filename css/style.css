@@ -138,3 +138,36 @@ h1 {
   pointer-events: none;
   padding: 20px;
 }
+
+/* ========= 遮奧層 ========= */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* 半透明黑色 */
+  background: rgba(0,0,0,0.5); 
+  /* 預設隱藏 */
+  display: none;
+}
+
+/* ========= 卡片視窗 ========= */
+.widget-card {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  /* 置中技巧 */
+  transform: translate(-50%, -50%);
+  background: white;
+  border-radius: 20px;
+  padding: 30px;
+  /* 預設隱藏 */
+  display: none;
+}
+
+/* 顯示狀態 */
+.overlay.active,
+.widgetcard.active {
+  display: block;
+}
