@@ -237,3 +237,10 @@ card-header h3 {
   }
 }
 
+.overlay.active {
+  animation: fadeIn .3s ease;
+}
+
+.widget.active {
+  animation: scaleIn .3s ease;
+}
