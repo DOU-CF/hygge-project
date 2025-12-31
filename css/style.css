@@ -183,43 +183,63 @@ h1 {
   z-index: 1000;
 }
 
-.widet-card.active {
+.widget-card.active {
   display: block;
   animation: scaleIn .3s ease;
 }
 
 /* 卡片標題列 */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #f0f0f0;
+  margin-bottom: 20px;
+}
+
 card-header h3 {
   margin: 0;
   font-size: 24px;
   color: #333;
+  font-weight: 600;
 }
 
 /* 關閉按鈕 */
 .close-btn {
   background: none;
   border: none;
-  font-size: 28px;
-  color: #999;
+  font-size: 20px;
+  color: #666;
   cursor: pointer;
   width: 40px;
   height: 40px;
   border-radius: 50%;
   transtion: all .3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .close-btn:hover {
-  background: #f5f5f5;
+  background: #e0e0e0;
   color: #333;
 }
 
 /* 卡片內容區 */
 .card-body {
+  color: #666;
+  line-height: 1.8;
+  font-size: 16px;
   padding: 30px;
   overflow-y: auto;
   max-height: calc(80vh - 80px);
 }
 
+.card-body p {
+  margin-bottom: 15px;
+  color: #666;
+}
 /* 動畫 */
 @keyframes fadeIn {
   from { opacity: 0;}
