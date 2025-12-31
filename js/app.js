@@ -68,7 +68,7 @@ window.addEventListener('DOMContentLoaded', function() {
   function getWidgetTitle(type) {
     const titles = {
       'todo': '📝 待辦清單',
-      'pomodoro': '🍅 番茄鐘',
+      'pomodoro': '番茄鐘',
       'water': '💧 喝水提醒',
       'weather': '🌤️ 天氣',
       'note': '📒 筆記'
