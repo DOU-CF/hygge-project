@@ -148,7 +148,7 @@ h1 {
   width: 100vw;
   height: 100vh;
   /* 半透明黑色 */
-  background: rgba(0,0,0,0.5); 
+  background: rgba(0, 0, 0, 0.5);
   /* 背景模糊效果 */
   backdrop-filter: blur(5px);
   /* 預設隱藏 */
@@ -160,7 +160,7 @@ h1 {
 /* 顯示狀態 */
 .overlay.active {
   display: block;
-  animation: fadeIn .3s ease;
+  animation: fadeIn 0.3s ease;
 }
 
 /* 卡片視窗 */
@@ -185,7 +185,7 @@ h1 {
 
 .widget-card.active {
   display: block;
-  animation: scaleIn .3s ease;
+  animation: scaleIn 0.3s ease;
 }
 
 /* 卡片標題列 */
@@ -198,7 +198,7 @@ h1 {
   margin-bottom: 20px;
 }
 
-card-header h3 {
+.card-header h3 {
   margin: 0;
   font-size: 24px;
   color: #333;
@@ -215,7 +215,7 @@ card-header h3 {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  transtion: all .3s;
+  transition: all 0.3s;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -242,8 +242,12 @@ card-header h3 {
 }
 /* 動畫 */
 @keyframes fadeIn {
-  from { opacity: 0;}
-  to { opacity: 1;}
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes scaleIn {
@@ -258,9 +262,9 @@ card-header h3 {
 }
 
 .overlay.active {
-  animation: fadeIn .3s ease;
+  animation: fadeIn 0.3s ease;
 }
 
-.widget.active {
-  animation: scaleIn .3s ease;
+.widget-card.active {
+  animation: scaleIn 0.3s ease;
 }
