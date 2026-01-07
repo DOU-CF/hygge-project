@@ -62,7 +62,7 @@
         </div>
 
         <!-- 筆記 -->
-        <div class="dock-item" data-widget="todo">
+        <div class="dock-item" data-widget="note">
           <span class="dock-icon">📒</span>
           <span class="dock-label">筆記</span>
         </div>
@@ -75,5 +75,17 @@
     </div>
 
     <script src="js/app.js"></script>
+    <!-- 遮罩層 -->
+    <div class="overlay" id="overlay"></div>
+    <!-- 卡片視窗 -->
+    <div class="widget-card" id="widgetCard">
+      <div class="card-header">
+        <h3 id="cardTitle">標題</h3>
+        <button class="close-btn" id="closeBtn">x</button> 
+      </div>
+      <div class="card-body" id="cardBody">
+        <!-- 內容會由 JavaScript 動態填入 -->
+      </div>
+    </div>  
   </body>
 </html>

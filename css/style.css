@@ -138,3 +138,129 @@ h1 {
   pointer-events: none;
   padding: 20px;
 }
+
+/* ========= 卡片視窗系統 ========= */
+/* 遮罩層 */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  /* 半透明黑色 */
+  background: rgba(0,0,0,0.5); 
+  /* 背景模糊效果 */
+  backdrop-filter: blur(5px);
+  /* 預設隱藏 */
+  display: none;
+  /* 確保在最上層 */
+  z-index: 999;
+}
+
+/* 顯示狀態 */
+.overlay.active {
+  display: block;
+  animation: fadeIn .3s ease;
+}
+
+/* 卡片視窗 */
+.widget-card {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  /* 置中技巧 */
+  transform: translate(-50%, -50%);
+  background: white;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0, 10px, 40px rgba(0, 0, 0, 0.3);
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow: hidden;
+  /* 預設隱藏 */
+  display: none;
+  z-index: 1000;
+}
+
+.widget-card.active {
+  display: block;
+  animation: scaleIn .3s ease;
+}
+
+/* 卡片標題列 */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #f0f0f0;
+  margin-bottom: 20px;
+}
+
+card-header h3 {
+  margin: 0;
+  font-size: 24px;
+  color: #333;
+  font-weight: 600;
+}
+
+/* 關閉按鈕 */
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #666;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  transtion: all .3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-btn:hover {
+  background: #e0e0e0;
+  color: #333;
+}
+
+/* 卡片內容區 */
+.card-body {
+  color: #666;
+  line-height: 1.8;
+  font-size: 16px;
+  padding: 30px;
+  overflow-y: auto;
+  max-height: calc(80vh - 80px);
+}
+
+.card-body p {
+  margin-bottom: 15px;
+  color: #666;
+}
+/* 動畫 */
+@keyframes fadeIn {
+  from { opacity: 0;}
+  to { opacity: 1;}
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.overlay.active {
+  animation: fadeIn .3s ease;
+}
+
+.widget.active {
+  animation: scaleIn .3s ease;
+}
