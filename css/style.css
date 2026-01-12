@@ -2294,136 +2294,273 @@ input:checked + .slider:before {
   overflow-y: auto;
 }
 
-/* 周計劃網格佈局 */
-.week-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 12px;
-  padding: 0;
-}
-/* 今天的欄位高亮 */
-.day-column.today {
-  background: rgba(102, 126, 234, 0.15);
-  border: 2px solid rgba(102, 126, 234, 0.3);
+/* ===== 周計劃 - 週次切換樣式 ===== */
+
+.weekly-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--border-color, #e5e7eb);
 }
 
-/* 單日欄位 */
-.day-column {
-  background: rgba(102, 126, 234, 0.05);
-  border-radius: 12px;
-  padding: 12px;
-  min-height: 300px;
+.weekly-header h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--text-primary, #1f2937);
+}
+
+/* 週次導航區域 */
+.week-navigation {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+#week-info {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  min-width: 150px;
+  padding: 0 0.5rem;
+}
+
+#week-number {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary, #1f2937);
+}
+
+#week-range {
+  font-size: 0.9rem;
+  color: var(--text-secondary, #6b7280);
+  margin-top: 0.25rem;
+}
+
+/* 導航按鈕 */
+.week-nav-btn {
+  padding: 0.5rem 1rem;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #4b5563;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.week-nav-btn:hover:not(:disabled) {
+  background: #f9fafb;
+  border-color: #9ca3af;
+  transform: translateY(-1px);
+}
+
+.week-nav-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.week-nav-btn:disabled {
+  cursor: not-allowed;
+  background: #f3f4f6;
+  color: #9ca3af;
+}
+
+/* 回到本週按鈕 - 特殊樣式 */
+.week-nav-btn.today-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  font-weight: 500;
+}
+
+.week-nav-btn.today-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #5568d3 0%, #64357c 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.week-nav-btn.today-btn:disabled {
+  background: #e5e7eb;
+  color: #9ca3af;
+  box-shadow: none;
+}
+
+/* 周計劃網格 */
+.weekly-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.day-column {
+  background: white;
+  border-radius: 12px;
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+  min-height: 200px;
   transition: all 0.3s ease;
 }
 
 .day-column:hover {
-  background: rgba(102, 126, 234, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-/* 星期標題 */
-.day-column h3 {
+/* 今天高亮 */
+.day-column.today {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 2px solid #fbbf24;
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+}
+
+.day-column.today .day-header {
+  color: #92400e;
+  font-weight: 700;
+}
+
+.day-header {
   text-align: center;
-  color: #667eea;
-  font-size: 1.1rem;
-  margin: 0 0 12px 0;
-  padding-bottom: 8px;
-  border-bottom: 2px solid rgba(102, 126, 234, 0.2);
   font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #f3f4f6;
+  color: #374151;
 }
 
-/* 任務列表 */
-.day-task-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  flex: 1;
+.day-tasks {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0.5rem;
 }
 
-/* 單一任務卡片 */
+/* 任務項目 */
 .week-task-item {
-  background: white;
+  background: #f9fafb;
   border-radius: 8px;
-  padding: 10px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
-  cursor: pointer;
-  animation: taskSlideIn 0.3s ease;
-}
-
-@keyframes taskSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  padding: 0.75rem;
+  border-left: 3px solid #d1d5db;
+  transition: all 0.2s ease;
 }
 
 .week-task-item:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: #f3f4f6;
   transform: translateX(2px);
 }
 
-/* 任務標題區 */
+.week-task-item.completed {
+  opacity: 0.6;
+  background: #e5e7eb;
+}
+
+.week-task-item.completed .task-text {
+  text-decoration: line-through;
+  color: #9ca3af;
+}
+
 .task-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 8px;
-  padding-left: 8px;
-  border-left: 4px solid #8b5cf6;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.task-title {
+.task-text {
   flex: 1;
   font-size: 0.9rem;
-  color: #333;
-  line-height: 1.4;
+  color: #1f2937;
   word-break: break-word;
 }
 
-/* 完成按鈕 */
 .task-complete-btn {
-  background: rgba(16, 185, 129, 0.1);
-  color: #10b981;
+  background: #10b981;
+  color: white;
   border: none;
-  border-radius: 50%;
+  border-radius: 4px;
   width: 24px;
   height: 24px;
-  font-size: 14px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  flex-shrink: 0;
+  font-size: 0.85rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
 }
 
 .task-complete-btn:hover {
-  background: #10b981;
-  color: white;
+  background: #059669;
   transform: scale(1.1);
+}
+
+/* 進度條 */
+.task-progress-bar {
+  width: 100%;
+  height: 4px;
+  background: #e5e7eb;
+  border-radius: 2px;
+  margin-top: 0.5rem;
+  overflow: hidden;
+}
+
+.task-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+  transition: width 0.3s ease;
 }
 
 /* 專案標籤 */
 .task-project {
-  margin-top: 6px;
   font-size: 0.75rem;
-  color: #8b5cf6;
-  background: rgba(139, 92, 246, 0.1);
-  padding: 3px 8px;
+  font-weight: 600;
+  margin-top: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  background: rgba(0, 0, 0, 0.05);
   border-radius: 4px;
   display: inline-block;
-  font-weight: 500;
+}
+
+/* 響應式設計 */
+@media (max-width: 1200px) {
+  .weekly-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .weekly-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .week-navigation {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .weekly-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .week-nav-btn {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .weekly-grid {
+    grid-template-columns: 1fr;
+  }
+
+  #week-info {
+    width: 100%;
+    text-align: center;
+  }
 }
 
 /* 空狀態 */

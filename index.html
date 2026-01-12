@@ -7,7 +7,8 @@
       name="description"
       content="Hygge - 個人生活管理平台，整合待辦清單、番茄鐘、喝水提醒等工具"
     />
-    <title>Hygge - 個人生活管理平台（升級版）</title>
+    <title>Hygge - 個人生活管理平台</title>
+    <link rel="stylesheet" href="./css/normalize.css" />
     <link rel="stylesheet" href="./css/style.css" />
   </head>
   <body>
@@ -371,44 +372,13 @@
       <!-- ========== 🗓 周計劃卡片 ========== -->
       <div class="widget-card" id="weekly-widget" data-widget="weekly">
         <div class="card-header">
-          <h2>
-            🗓 周計劃
-            <span id="week-range" style="font-size: 0.8rem; color: #999"></span>
-          </h2>
+          <h2>🗓 周計劃</h2>
           <button class="close-btn" data-close="weekly">✕</button>
         </div>
 
         <div class="card-body weekly-body">
-          <div class="week-grid">
-            <div class="day-column" data-day="mon">
-              <h3>一</h3>
-              <ul class="day-task-list"></ul>
-            </div>
-            <div class="day-column" data-day="tue">
-              <h3>二</h3>
-              <ul class="day-task-list"></ul>
-            </div>
-            <div class="day-column" data-day="wed">
-              <h3>三</h3>
-              <ul class="day-task-list"></ul>
-            </div>
-            <div class="day-column" data-day="thu">
-              <h3>四</h3>
-              <ul class="day-task-list"></ul>
-            </div>
-            <div class="day-column" data-day="fri">
-              <h3>五</h3>
-              <ul class="day-task-list"></ul>
-            </div>
-            <div class="day-column" data-day="sat">
-              <h3>六</h3>
-              <ul class="day-task-list"></ul>
-            </div>
-            <div class="day-column" data-day="sun">
-              <h3>日</h3>
-              <ul class="day-task-list"></ul>
-            </div>
-          </div>
+          <!-- 空容器，JavaScript 會自動建立內容 -->
+          <div id="weekly-planner"></div>
         </div>
       </div>
 

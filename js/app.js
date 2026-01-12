@@ -15,7 +15,7 @@ let ganttChart = null;
 // ==================== 卡片管理系統 ====================
 class WidgetManager {
   constructor() {
-    this.activeWidgets = new Set(); // 記錄已開啟的卡片
+    this.activeWidgets = new Set();
     this.init();
   }
 
@@ -26,10 +26,8 @@ class WidgetManager {
     console.log("✅ WidgetManager 初始化完成");
   }
 
-  // 綁定 Dock 點擊事件
   bindDockEvents() {
     const dockItems = document.querySelectorAll(".dock-item");
-
     dockItems.forEach((item) => {
       item.addEventListener("click", () => {
         const widgetType = item.dataset.widget;
@@ -38,7 +36,6 @@ class WidgetManager {
     });
   }
 
-  // 🆕 切換卡片（開啟/關閉）
   toggleWidget(type, dockItem) {
     const widget = document.querySelector(`#${type}-widget`);
     const welcomeMsg = document.querySelector(".welcome-message");
@@ -48,7 +45,6 @@ class WidgetManager {
       return;
     }
 
-    // 如果卡片已開啟，則關閉
     if (this.activeWidgets.has(type)) {
       this.closeWidget(type, dockItem);
     } else {
@@ -56,45 +52,29 @@ class WidgetManager {
     }
   }
 
-  // 🆕 開啟卡片
   openWidget(type, widget, dockItem, welcomeMsg) {
-    // 隱藏歡迎訊息
     if (welcomeMsg) {
       welcomeMsg.style.display = "none";
     }
-
-    // 顯示卡片
     widget.classList.add("active");
     widget.style.display = "block";
-
-    // 標記 Dock 項目為啟用
     if (dockItem) {
       dockItem.classList.add("active");
     }
-
-    // 記錄到已開啟集合
     this.activeWidgets.add(type);
-
-    // 初始化對應的功能
     this.initWidgetFunction(type);
-
     console.log(`✅ 開啟卡片: ${type}`);
   }
 
-  // 🆕 關閉卡片
   closeWidget(type, dockItem) {
     const widget = document.querySelector(`#${type}-widget`);
-
     if (widget) {
       widget.classList.remove("active");
       widget.style.display = "none";
     }
-
-    // 移除 Dock 項目的啟用狀態
     if (dockItem) {
       dockItem.classList.remove("active");
     } else {
-      // 如果沒有傳入 dockItem，手動查找
       const dockItems = document.querySelectorAll(".dock-item");
       dockItems.forEach((item) => {
         if (item.dataset.widget === type) {
@@ -102,51 +82,33 @@ class WidgetManager {
         }
       });
     }
-
-    // 從已開啟集合中移除
     this.activeWidgets.delete(type);
-
-    // 如果沒有任何卡片開啟，顯示歡迎訊息
     if (this.activeWidgets.size === 0) {
       const welcomeMsg = document.querySelector(".welcome-message");
       if (welcomeMsg) {
         welcomeMsg.style.display = "block";
       }
     }
-
     console.log(`✅ 關閉卡片: ${type}`);
   }
 
-  // 初始化對應功能
   initWidgetFunction(type) {
     switch (type) {
       case "todo":
-        if (!todoApp) {
-          todoApp = new TodoApp();
-        }
+        if (!todoApp) todoApp = new TodoApp();
         break;
       case "pomodoro":
-        if (!pomodoroTimer) {
-          pomodoroTimer = new PomodoroTimer();
-        }
+        if (!pomodoroTimer) pomodoroTimer = new PomodoroTimer();
         break;
       case "water":
-        if (!waterReminder) {
-          waterReminder = new WaterReminder();
-        }
+        if (!waterReminder) waterReminder = new WaterReminder();
         break;
       case "note":
-        if (!noteManager) {
-          noteManager = new NoteManager();
-        }
+        if (!noteManager) noteManager = new NoteManager();
         break;
-
       case "weather":
-        if (!weatherManager) {
-          weatherManager = new WeatherManager();
-        }
+        if (!weatherManager) weatherManager = new WeatherManager();
         break;
-
       case "weekly":
         if (!weeklyPlanner) weeklyPlanner = new WeeklyPlanner();
         break;
@@ -156,10 +118,8 @@ class WidgetManager {
     }
   }
 
-  // 綁定關閉按鈕事件
   bindCloseEvents() {
     const closeButtons = document.querySelectorAll(".close-btn");
-
     closeButtons.forEach((btn) => {
       btn.addEventListener("click", () => {
         const widgetType = btn.dataset.close;
@@ -168,11 +128,9 @@ class WidgetManager {
     });
   }
 
-  // 綁定鍵盤事件（Esc 關閉所有卡片）
   bindKeyboardEvents() {
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
-        // 關閉所有卡片
         this.activeWidgets.forEach((type) => {
           this.closeWidget(type);
         });
@@ -203,8 +161,6 @@ class TodoApp {
     this.emptyState = document.querySelector("#todo-empty");
     this.todoCount = document.querySelector("#todo-count");
     this.clearBtn = document.querySelector("#clear-completed-btn");
-
-    // ✅ 編輯對話框元素
     this.editModal = document.querySelector("#edit-modal-overlay");
     this.editTextInput = document.querySelector("#edit-todo-text");
     this.editProjectSelect = document.querySelector("#edit-todo-project");
@@ -222,29 +178,22 @@ class TodoApp {
       console.warn("⚠️ 待辦清單元素未找到");
       return;
     }
-
     this.addBtn.addEventListener("click", () => this.addTodo());
     this.todoInput.addEventListener("keypress", (e) => {
       if (e.key === "Enter") this.addTodo();
     });
     this.clearBtn.addEventListener("click", () => this.clearCompleted());
-
-    // ✅ 編輯對話框事件（放在 bindEvents 方法裡面）
     if (this.saveEditBtn) {
       this.saveEditBtn.addEventListener("click", () => this.saveEdit());
     }
-
     if (this.cancelEditBtn) {
       this.cancelEditBtn.addEventListener("click", () => this.closeEditModal());
     }
-
     if (this.closeEditModalBtn) {
       this.closeEditModalBtn.addEventListener("click", () =>
         this.closeEditModal()
       );
     }
-
-    // 點擊遮罩關閉
     if (this.editModal) {
       this.editModal.addEventListener("click", (e) => {
         if (e.target === this.editModal) {
@@ -252,15 +201,11 @@ class TodoApp {
         }
       });
     }
-
-    // 進度條即時更新
     if (this.editProgressInput) {
       this.editProgressInput.addEventListener("input", (e) => {
         this.progressValue.textContent = `${e.target.value}%`;
       });
     }
-
-    // 優先級按鈕
     this.priorityBtns.forEach((btn) => {
       btn.addEventListener("click", () => {
         this.priorityBtns.forEach((b) => b.classList.remove("active"));
@@ -271,26 +216,21 @@ class TodoApp {
 
   addTodo() {
     const text = this.todoInput.value.trim();
-
     if (!text) {
       alert("請輸入待辦事項！");
       return;
     }
-
     const newTodo = {
       id: Date.now(),
       text: text,
       completed: false,
       createdAt: new Date().toLocaleDateString("zh-TW"),
     };
-
     this.todos.push(newTodo);
     this.saveTodos();
     this.render();
-
     this.todoInput.value = "";
     this.todoInput.focus();
-
     console.log("✅ 新增待辦:", text);
   }
 
@@ -313,12 +253,10 @@ class TodoApp {
 
   clearCompleted() {
     const completedCount = this.todos.filter((t) => t.completed).length;
-
     if (completedCount === 0) {
       alert("沒有已完成的待辦事項！");
       return;
     }
-
     if (confirm(`確定要清除 ${completedCount} 個已完成的項目嗎？`)) {
       this.todos = this.todos.filter((t) => !t.completed);
       this.saveTodos();
@@ -330,22 +268,18 @@ class TodoApp {
     if (!this.todoList || !this.emptyState || !this.todoCount) {
       return;
     }
-
     this.todoList.innerHTML = "";
-
     if (this.todos.length === 0) {
       this.emptyState.style.display = "block";
       this.todoList.style.display = "none";
     } else {
       this.emptyState.style.display = "none";
       this.todoList.style.display = "block";
-
       this.todos.forEach((todo) => {
         const li = this.createTodoElement(todo);
         this.todoList.appendChild(li);
       });
     }
-
     const activeCount = this.todos.filter((t) => !t.completed).length;
     this.todoCount.textContent = `共 ${this.todos.length} 項 (${activeCount} 項未完成)`;
   }
@@ -353,8 +287,6 @@ class TodoApp {
   createTodoElement(todo) {
     const li = document.createElement("li");
     li.className = `todo-item ${todo.completed ? "completed" : ""}`;
-
-    // ✅ 添加優先級圖示
     const priorityIcon =
       todo.priority === "high"
         ? "🔴"
@@ -363,7 +295,6 @@ class TodoApp {
         : todo.priority === "low"
         ? "🟢"
         : "";
-
     li.innerHTML = `
       <input 
         type="checkbox" 
@@ -383,15 +314,12 @@ class TodoApp {
         <button class="todo-delete-btn" title="刪除">🗑️</button>
       </div>
     `;
-
     const checkbox = li.querySelector(".todo-checkbox");
     const editBtn = li.querySelector(".todo-edit-btn");
     const deleteBtn = li.querySelector(".todo-delete-btn");
-
     checkbox.addEventListener("change", () => this.toggleTodo(todo.id));
     editBtn.addEventListener("click", () => this.openEditModal(todo.id));
     deleteBtn.addEventListener("click", () => this.deleteTodo(todo.id));
-
     return li;
   }
 
@@ -410,95 +338,69 @@ class TodoApp {
     return saved ? JSON.parse(saved) : [];
   }
 
-  // ==================== ✅ 編輯功能的三個新方法 ====================
-
-  // 打開編輯對話框
   openEditModal(id) {
     const todo = this.todos.find((t) => t.id === id);
     if (!todo) return;
-
     this.currentEditId = id;
-
-    // 填充表單
     this.editTextInput.value = todo.text;
     this.editProjectSelect.value = todo.project || "";
     this.editWeekdaySelect.value = todo.weekDay || "";
     this.editProgressInput.value = todo.progress || 0;
     this.progressValue.textContent = `${todo.progress || 0}%`;
-
-    // 設定優先級
     this.priorityBtns.forEach((btn) => {
       btn.classList.remove("active");
       if (btn.dataset.priority === todo.priority) {
         btn.classList.add("active");
       }
     });
-
-    // 顯示對話框
     this.editModal.classList.add("active");
     this.editTextInput.focus();
-
     console.log("✅ 開啟編輯對話框:", todo);
   }
 
-  // 關閉編輯對話框
   closeEditModal() {
     this.editModal.classList.remove("active");
     this.currentEditId = null;
     console.log("✅ 關閉編輯對話框");
   }
 
-  // 儲存編輯
   saveEdit() {
     const text = this.editTextInput.value.trim();
-
     if (!text) {
       alert("請輸入任務標題！");
       this.editTextInput.focus();
       return;
     }
-
     const todo = this.todos.find((t) => t.id === this.currentEditId);
     if (!todo) return;
-
-    // 更新任務
     todo.text = text;
     todo.project = this.editProjectSelect.value || null;
     todo.weekDay = this.editWeekdaySelect.value || null;
     todo.progress = parseInt(this.editProgressInput.value) || 0;
-
-    // 取得選中的優先級
     const activePriorityBtn = document.querySelector(".priority-btn.active");
     todo.priority = activePriorityBtn
       ? activePriorityBtn.dataset.priority
       : null;
-
     this.saveTodos();
     this.render();
     this.closeEditModal();
-
-    // 同步更新其他視圖
     if (weeklyPlanner) weeklyPlanner.render();
     if (ganttChart) ganttChart.render();
-
     console.log("✅ 任務已更新:", todo);
   }
-} // ⬅️ TodoApp 類別結束
+}
 
 // ==================== Day 6: 番茄鐘功能 ====================
 class PomodoroTimer {
   constructor() {
     console.log("🍅 PomodoroTimer 初始化中...");
-
     this.workTime = 25 * 60;
     this.breakTime = 5 * 60;
     this.timeLeft = this.workTime;
     this.totalTime = this.workTime;
-
     this.isRunning = false;
     this.isWorkTime = true;
     this.intervalId = null;
-
     this.init();
   }
 
@@ -527,11 +429,9 @@ class PomodoroTimer {
       console.warn("⚠️ 番茄鐘按鈕元素未找到");
       return;
     }
-
     this.startBtn.addEventListener("click", () => this.start());
     this.pauseBtn.addEventListener("click", () => this.pause());
     this.resetBtn.addEventListener("click", () => this.reset());
-
     if (this.workTimeInput) {
       this.workTimeInput.addEventListener("change", () =>
         this.updateSettings()
@@ -546,11 +446,9 @@ class PomodoroTimer {
 
   start() {
     if (this.isRunning) return;
-
     this.isRunning = true;
     this.startBtn.disabled = true;
     this.pauseBtn.disabled = false;
-
     if (this.isWorkTime) {
       this.statusText.textContent = "🎯 專注中...保持專注！";
       this.timerDisplay.classList.add("running");
@@ -560,25 +458,20 @@ class PomodoroTimer {
       this.timerDisplay.classList.add("break");
       this.timerDisplay.classList.remove("running", "paused");
     }
-
     this.intervalId = setInterval(() => {
       this.tick();
     }, 1000);
-
     console.log("▶️ 計時器已開始");
   }
 
   pause() {
     if (!this.isRunning) return;
-
     this.isRunning = false;
     this.startBtn.disabled = false;
     this.pauseBtn.disabled = true;
     this.statusText.textContent = "⏸️ 已暫停";
-
     this.timerDisplay.classList.add("paused");
     this.timerDisplay.classList.remove("running", "break");
-
     clearInterval(this.intervalId);
     console.log("⏸️ 計時器已暫停");
   }
@@ -589,13 +482,10 @@ class PomodoroTimer {
     this.totalTime = this.timeLeft;
     this.updateDisplay();
     this.updateProgress();
-
     this.statusText.textContent = this.isWorkTime
       ? "準備開始專注 25 分鐘"
       : "準備休息 5 分鐘";
-
     this.timerDisplay.classList.remove("running", "paused", "break");
-
     console.log("↻ 計時器已重置");
   }
 
@@ -603,7 +493,6 @@ class PomodoroTimer {
     this.timeLeft--;
     this.updateDisplay();
     this.updateProgress();
-
     if (this.timeLeft <= 0) {
       this.complete();
     }
@@ -611,7 +500,6 @@ class PomodoroTimer {
 
   complete() {
     this.pause();
-
     if (this.isWorkTime) {
       alert("🎉 專注時間結束！休息一下吧！");
       this.isWorkTime = false;
@@ -625,7 +513,6 @@ class PomodoroTimer {
       this.totalTime = this.workTime;
       this.statusText.textContent = "準備開始專注 25 分鐘";
     }
-
     this.updateDisplay();
     this.updateProgress();
     this.timerDisplay.classList.remove("running", "paused", "break");
@@ -633,30 +520,24 @@ class PomodoroTimer {
 
   updateDisplay() {
     if (!this.minutesDisplay || !this.secondsDisplay) return;
-
     const minutes = Math.floor(this.timeLeft / 60);
     const seconds = this.timeLeft % 60;
-
     this.minutesDisplay.textContent = String(minutes).padStart(2, "0");
     this.secondsDisplay.textContent = String(seconds).padStart(2, "0");
   }
 
   updateProgress() {
     if (!this.progressBar) return;
-
     const progress = ((this.totalTime - this.timeLeft) / this.totalTime) * 100;
     this.progressBar.style.width = `${progress}%`;
   }
 
   updateSettings() {
     if (!this.workTimeInput || !this.breakTimeInput) return;
-
     const newWorkTime = parseInt(this.workTimeInput.value) || 25;
     const newBreakTime = parseInt(this.breakTimeInput.value) || 5;
-
     this.workTime = newWorkTime * 60;
     this.breakTime = newBreakTime * 60;
-
     if (!this.isRunning) {
       this.timeLeft = this.isWorkTime ? this.workTime : this.breakTime;
       this.totalTime = this.timeLeft;
@@ -666,22 +547,16 @@ class PomodoroTimer {
   }
 }
 
-// ==================== 🆕 Day 7: 喝水提醒功能 ====================
 // ==================== 🆕 優化版喝水提醒功能 ====================
 class WaterReminder {
   constructor() {
     console.log("💧 WaterReminder 優化版初始化中...");
-
-    // 🆕 新增的屬性
-    this.cupSize = this.loadCupSize() || 250; // 預設 250ml
-    this.waterGoal = this.loadWaterGoal() || 2000; // 預設 2000ml
-    this.waterAmount = this.loadWaterAmount(); // 已喝水量（毫升）
-
-    // 原有屬性
+    this.cupSize = this.loadCupSize() || 250;
+    this.waterGoal = this.loadWaterGoal() || 2000;
+    this.waterAmount = this.loadWaterAmount();
     this.reminderInterval = null;
     this.reminderEnabled = true;
-    this.reminderTime = 60; // 預設 60 分鐘提醒一次
-
+    this.reminderTime = 60;
     this.init();
   }
 
@@ -694,24 +569,17 @@ class WaterReminder {
   }
 
   cacheDom() {
-    // 顯示元素
     this.waterAmountML = document.querySelector("#water-amount-ml");
     this.waterGoalML = document.querySelector("#water-goal-ml");
     this.waterPercentage = document.querySelector("#water-percentage");
     this.progressBar = document.querySelector("#water-progress-bar");
     this.progressText = document.querySelector("#progress-text");
-
-    // 控制按鈕
     this.addBtn = document.querySelector("#add-water-btn");
     this.resetBtn = document.querySelector("#reset-water-btn");
     this.currentCupSizeSpan = document.querySelector("#current-cup-size");
-
-    // 設定元素
     this.reminderToggle = document.querySelector("#reminder-toggle");
     this.reminderTimeInput = document.querySelector("#reminder-time");
     this.waterGoalInput = document.querySelector("#water-goal-input");
-
-    // 🆕 水杯容量按鈕
     this.cupSizeOptions = document.querySelector("#cup-size-options");
     this.cupButtons = document.querySelectorAll(".cup-btn");
   }
@@ -721,14 +589,8 @@ class WaterReminder {
       console.warn("⚠️ 喝水提醒元素未找到");
       return;
     }
-
-    // 喝水按鈕
     this.addBtn.addEventListener("click", () => this.addWater());
-
-    // 重置按鈕
     this.resetBtn.addEventListener("click", () => this.resetWater());
-
-    // 🆕 水杯容量選擇
     if (this.cupSizeOptions) {
       this.cupButtons.forEach((btn) => {
         btn.addEventListener("click", (e) => {
@@ -737,8 +599,6 @@ class WaterReminder {
         });
       });
     }
-
-    // 🆕 目標設定
     if (this.waterGoalInput) {
       this.waterGoalInput.addEventListener("change", (e) => {
         const newGoal = parseInt(e.target.value) || 2000;
@@ -748,8 +608,6 @@ class WaterReminder {
         console.log(`🎯 目標已更新為：${this.waterGoal}ml`);
       });
     }
-
-    // 提醒開關
     if (this.reminderToggle) {
       this.reminderToggle.addEventListener("change", (e) => {
         this.reminderEnabled = e.target.checked;
@@ -760,8 +618,6 @@ class WaterReminder {
         }
       });
     }
-
-    // 提醒間隔
     if (this.reminderTimeInput) {
       this.reminderTimeInput.addEventListener("change", (e) => {
         this.reminderTime = parseInt(e.target.value) || 60;
@@ -770,12 +626,9 @@ class WaterReminder {
     }
   }
 
-  // 🆕 更換水杯容量
   changeCupSize(size) {
     this.cupSize = size;
     this.saveCupSize();
-
-    // 更新按鈕狀態
     this.cupButtons.forEach((btn) => {
       if (parseInt(btn.dataset.size) === size) {
         btn.classList.add("active");
@@ -783,50 +636,38 @@ class WaterReminder {
         btn.classList.remove("active");
       }
     });
-
-    // 更新顯示
     if (this.currentCupSizeSpan) {
       this.currentCupSizeSpan.textContent = `(${size}ml)`;
     }
-
     console.log(`🥤 水杯容量已更換為：${size}ml`);
   }
 
-  // 🆕 喝水（以毫升計算）
   addWater() {
     this.waterAmount += this.cupSize;
     this.saveWaterAmount();
     this.render();
-
-    // 達成目標時的慶祝效果
     if (
       this.waterAmount >= this.waterGoal &&
       this.waterAmount - this.cupSize < this.waterGoal
     ) {
       this.showGoalAchieved();
     }
-
     console.log(`💧 喝水 +${this.cupSize}ml，目前：${this.waterAmount}ml`);
   }
 
-  // 🆕 達成目標動畫
   showGoalAchieved() {
     alert("🎉 太棒了！你已經完成今天的喝水目標！");
-
-    // 添加動畫效果
     if (this.waterPercentage) {
       this.waterPercentage.classList.add("goal-achieved");
       setTimeout(() => {
         this.waterPercentage.classList.remove("goal-achieved");
       }, 600);
     }
-
     if (this.progressBar) {
       this.progressBar.classList.add("goal-achieved");
     }
   }
 
-  // 重置喝水記錄
   resetWater() {
     if (confirm("確定要重置今日喝水記錄嗎？")) {
       this.waterAmount = 0;
@@ -836,19 +677,13 @@ class WaterReminder {
     }
   }
 
-  // 🆕 渲染畫面（優化版）
   render() {
-    // 更新已喝水量
     if (this.waterAmountML) {
       this.waterAmountML.textContent = `${this.waterAmount} ml`;
     }
-
-    // 更新目標
     if (this.waterGoalML) {
       this.waterGoalML.textContent = `${this.waterGoal} ml`;
     }
-
-    // 更新百分比
     const percentage = Math.min(
       Math.round((this.waterAmount / this.waterGoal) * 100),
       100
@@ -856,23 +691,15 @@ class WaterReminder {
     if (this.waterPercentage) {
       this.waterPercentage.textContent = `${percentage}%`;
     }
-
-    // 更新進度條
     if (this.progressBar) {
       this.progressBar.style.width = `${percentage}%`;
-
-      // 更新進度條內的文字
       if (this.progressText) {
         this.progressText.textContent = `${this.waterAmount} ml`;
       }
     }
-
-    // 更新目標輸入框
     if (this.waterGoalInput) {
       this.waterGoalInput.value = this.waterGoal;
     }
-
-    // 更新水杯容量按鈕狀態
     this.cupButtons.forEach((btn) => {
       if (parseInt(btn.dataset.size) === this.cupSize) {
         btn.classList.add("active");
@@ -880,29 +707,21 @@ class WaterReminder {
         btn.classList.remove("active");
       }
     });
-
-    // 更新按鈕顯示
     if (this.currentCupSizeSpan) {
       this.currentCupSizeSpan.textContent = `(${this.cupSize}ml)`;
     }
   }
 
-  // 開始提醒
   startReminder() {
     this.stopReminder();
-
     if (!this.reminderEnabled) return;
-
     const intervalMs = this.reminderTime * 60 * 1000;
-
     this.reminderInterval = setInterval(() => {
       this.showReminder();
     }, intervalMs);
-
     console.log(`⏰ 喝水提醒已啟動（每 ${this.reminderTime} 分鐘）`);
   }
 
-  // 停止提醒
   stopReminder() {
     if (this.reminderInterval) {
       clearInterval(this.reminderInterval);
@@ -911,7 +730,6 @@ class WaterReminder {
     }
   }
 
-  // 顯示提醒
   showReminder() {
     if (this.waterAmount < this.waterGoal) {
       const remaining = this.waterGoal - this.waterAmount;
@@ -920,48 +738,37 @@ class WaterReminder {
     }
   }
 
-  // ==================== 🆕 LocalStorage 操作 ====================
-
-  // 儲存水杯容量
   saveCupSize() {
     localStorage.setItem("hygge-cup-size", this.cupSize.toString());
   }
 
-  // 載入水杯容量
   loadCupSize() {
     const saved = localStorage.getItem("hygge-cup-size");
     return saved ? parseInt(saved) : null;
   }
 
-  // 儲存喝水目標
   saveWaterGoal() {
     localStorage.setItem("hygge-water-goal", this.waterGoal.toString());
   }
 
-  // 載入喝水目標
   loadWaterGoal() {
     const saved = localStorage.getItem("hygge-water-goal");
     return saved ? parseInt(saved) : null;
   }
 
-  // 儲存已喝水量
   saveWaterAmount() {
     localStorage.setItem("hygge-water-amount", this.waterAmount.toString());
     localStorage.setItem("hygge-water-date", new Date().toDateString());
   }
 
-  // 載入已喝水量
   loadWaterAmount() {
     const savedDate = localStorage.getItem("hygge-water-date");
     const today = new Date().toDateString();
-
-    // 如果是新的一天，重置計數
     if (savedDate !== today) {
       localStorage.setItem("hygge-water-amount", "0");
       localStorage.setItem("hygge-water-date", today);
       return 0;
     }
-
     const saved = localStorage.getItem("hygge-water-amount");
     return saved ? parseInt(saved) : 0;
   }
@@ -972,10 +779,7 @@ console.log("✅ WaterReminder 優化版已載入！");
 // ==================== 程式啟動 ====================
 document.addEventListener("DOMContentLoaded", () => {
   console.log("🚀 Hygge 升級版啟動中...");
-
-  // 初始化卡片管理系統
   const widgetManager = new WidgetManager();
-
   console.log("✅ Hygge 升級版啟動完成！");
   console.log("📝 功能列表：");
   console.log("  - 待辦清單");
@@ -1013,9 +817,7 @@ class NoteManager {
       console.warn("⚠️ 筆記元素未找到");
       return;
     }
-
     this.saveBtn.addEventListener("click", () => this.saveNote());
-
     this.contentInput.addEventListener("keydown", (e) => {
       if (e.ctrlKey && e.key === "Enter") {
         this.saveNote();
@@ -1026,19 +828,16 @@ class NoteManager {
   saveNote() {
     const title = this.titleInput.value.trim();
     const content = this.contentInput.value.trim();
-
     if (!title) {
       alert("請輸入筆記標題！");
       this.titleInput.focus();
       return;
     }
-
     if (!content) {
       alert("請輸入筆記內容！");
       this.contentInput.focus();
       return;
     }
-
     const newNote = {
       id: Date.now(),
       title: title,
@@ -1046,15 +845,12 @@ class NoteManager {
       createdAt: new Date().toLocaleString("zh-TW"),
       timestamp: Date.now(),
     };
-
     this.notes.unshift(newNote);
     this.saveToStorage();
     this.render();
-
     this.titleInput.value = "";
     this.contentInput.value = "";
     this.titleInput.focus();
-
     console.log("✅ 筆記已儲存:", title);
   }
 
@@ -1063,7 +859,6 @@ class NoteManager {
     if (noteElement) {
       const contentElement = noteElement.querySelector(".note-item-content");
       const viewBtn = noteElement.querySelector(".note-view-btn");
-
       if (contentElement.classList.contains("expanded")) {
         contentElement.classList.remove("expanded");
         viewBtn.textContent = "👁️ 查看";
@@ -1076,7 +871,6 @@ class NoteManager {
 
   deleteNote(id) {
     const note = this.notes.find((n) => n.id === id);
-
     if (confirm(`確定要刪除「${note.title}」嗎？`)) {
       this.notes = this.notes.filter((n) => n.id !== id);
       this.saveToStorage();
@@ -1089,16 +883,13 @@ class NoteManager {
     if (!this.notesList || !this.emptyState) {
       return;
     }
-
     this.notesList.innerHTML = "";
-
     if (this.notes.length === 0) {
       this.emptyState.style.display = "block";
       this.notesList.style.display = "none";
     } else {
       this.emptyState.style.display = "none";
       this.notesList.style.display = "block";
-
       this.notes.forEach((note) => {
         const noteElement = this.createNoteElement(note);
         this.notesList.appendChild(noteElement);
@@ -1110,7 +901,6 @@ class NoteManager {
     const div = document.createElement("div");
     div.className = "note-item";
     div.dataset.noteId = note.id;
-
     div.innerHTML = `
       <div class="note-item-header" onclick="noteManager.toggleNoteContent(${
         note.id
@@ -1132,7 +922,6 @@ class NoteManager {
         </button>
       </div>
     `;
-
     return div;
   }
 
@@ -1156,12 +945,9 @@ class NoteManager {
 class WeatherManager {
   constructor() {
     console.log("🌤️ WeatherManager 初始化中...");
-
-    // ⚠️ API Key！
     this.apiKey = "6ff75519f2f400207595592ab3ff4f45";
     this.city = this.loadCity() || "Kaohsiung";
     this.weatherData = null;
-
     this.init();
   }
 
@@ -1192,7 +978,6 @@ class WeatherManager {
       console.warn("⚠️ 天氣元素未找到");
       return;
     }
-
     this.refreshBtn.addEventListener("click", () => this.fetchWeather());
     this.changeCityBtn.addEventListener("click", () => this.changeCity());
     this.cityInput.addEventListener("keypress", (e) => {
@@ -1200,23 +985,17 @@ class WeatherManager {
     });
   }
 
-  // 獲取天氣資料
   async fetchWeather() {
     try {
       this.showLoading();
-
       const url = `https://api.openweathermap.org/data/2.5/weather?q=${this.city}&appid=${this.apiKey}&units=metric&lang=zh_tw`;
-
       const response = await fetch(url);
-
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
       const data = await response.json();
       this.weatherData = data;
       this.render();
-
       console.log("✅ 天氣資料獲取成功:", data);
     } catch (error) {
       console.error("❌ 獲取天氣失敗:", error);
@@ -1224,7 +1003,6 @@ class WeatherManager {
     }
   }
 
-  // 顯示載入中
   showLoading() {
     if (this.weatherDescription) {
       this.weatherDescription.textContent = "載入中...";
@@ -1234,7 +1012,6 @@ class WeatherManager {
     }
   }
 
-  // 顯示錯誤
   showError(message) {
     if (this.weatherDescription) {
       this.weatherDescription.textContent = "載入失敗";
@@ -1243,35 +1020,24 @@ class WeatherManager {
     if (this.weatherTemp) {
       this.weatherTemp.textContent = "😞";
     }
-
     alert(
       `無法獲取天氣資料：${message}\n\n請檢查：\n1. 城市名稱是否正確\n2. API Key 是否有效\n3. 網路連線是否正常`
     );
   }
 
-  // 渲染畫面
   render() {
     if (!this.weatherData) return;
-
     const data = this.weatherData;
-
-    // 天氣圖示
     if (this.weatherIcon) {
       this.weatherIcon.textContent = this.getWeatherIcon(data.weather[0].main);
     }
-
-    // 天氣描述
     if (this.weatherDescription) {
       this.weatherDescription.textContent = data.weather[0].description;
       this.weatherDescription.style.color = "#666";
     }
-
-    // 溫度
     if (this.weatherTemp) {
       const temp = Math.round(data.main.temp);
       this.weatherTemp.textContent = `${temp}°C`;
-
-      // 根據溫度改變顏色
       this.weatherTemp.className = "weather-temp";
       if (temp >= 30) {
         this.weatherTemp.classList.add("hot");
@@ -1283,13 +1049,9 @@ class WeatherManager {
         this.weatherTemp.classList.add("cold");
       }
     }
-
-    // 城市名稱
     if (this.weatherLocation) {
       this.weatherLocation.textContent = `📍 ${data.name}`;
     }
-
-    // 詳細資訊
     if (this.feelsLike) {
       this.feelsLike.textContent = `${Math.round(data.main.feels_like)}°C`;
     }
@@ -1302,15 +1064,12 @@ class WeatherManager {
     if (this.pressure) {
       this.pressure.textContent = `${data.main.pressure} hPa`;
     }
-
-    // 更新時間
     if (this.updateTime) {
       const now = new Date().toLocaleString("zh-TW");
       this.updateTime.textContent = `更新時間：${now}`;
     }
   }
 
-  // 根據天氣狀況返回對應的 Emoji
   getWeatherIcon(weather) {
     const icons = {
       Clear: "☀️",
@@ -1329,199 +1088,335 @@ class WeatherManager {
       Squall: "💨",
       Tornado: "🌪️",
     };
-
     return icons[weather] || "🌤️";
   }
 
-  // 更換城市
   changeCity() {
     const newCity = this.cityInput.value.trim();
-
     if (!newCity) {
       alert("請輸入城市名稱！");
       return;
     }
-
     this.city = newCity;
     this.saveCity();
     this.fetchWeather();
-
     console.log("✅ 城市已更換為:", newCity);
   }
 
-  // 儲存城市到 localStorage
   saveCity() {
     localStorage.setItem("hygge-weather-city", this.city);
   }
 
-  // 從 localStorage 載入城市
   loadCity() {
     return localStorage.getItem("hygge-weather-city");
   }
 }
 
-// ========== 先建立資料容器 (「宣告空陣列」)==========
-
-let todos = [];
+// ========== 先建立資料容器 ===========
+window.todos = [];
 
 console.log("✅ 所有功能已載入！");
 
-// ==================== 📅 周計劃功能 ====================// ==================== 📅 周計劃功能 ====================
+// ===== 周計劃 - 完整版 (含週次切換功能) =====
+
 class WeeklyPlanner {
   constructor() {
-    console.log("🗓 WeeklyPlanner 初始化中...");
-    this.init();
-  }
-
-  init() {
-    this.cacheDom();
-    this.bindEvents();
+    this.currentWeekOffset = 0;
+    this.container = document.querySelector("#weekly-planner");
+    this.weekRangeSpan = null;
+    this.weekNumberSpan = null;
+    this.dayColumns = {};
+    this.initializeUI();
+    this.setupEventListeners();
     this.render();
-    this.updateWeekRange();
-    console.log("✅ WeeklyPlanner 初始化完成！");
   }
 
-  cacheDom() {
-    this.weekGrid = document.querySelector(".week-grid");
-    this.dayColumns = document.querySelectorAll(".day-column");
+  initializeUI() {
+    if (!this.container) return;
+    this.container.innerHTML = `
+      <div class="weekly-header">
+        <h3>🗓 周計劃</h3>
+        <div class="week-navigation">
+          <button class="week-nav-btn" id="prev-week">◀ 上週</button>
+          <span id="week-info">
+            <span id="week-number">第 1 週</span>
+            <span id="week-range">(1/1-1/7)</span>
+          </span>
+          <button class="week-nav-btn" id="next-week">下週 ▶</button>
+          <button class="week-nav-btn today-btn" id="back-to-today">回到本週</button>
+        </div>
+      </div>
+      <div class="weekly-grid">
+        <div class="day-column" data-day="mon">
+          <div class="day-header">一</div>
+          <div class="day-tasks"></div>
+        </div>
+        <div class="day-column" data-day="tue">
+          <div class="day-header">二</div>
+          <div class="day-tasks"></div>
+        </div>
+        <div class="day-column" data-day="wed">
+          <div class="day-header">三</div>
+          <div class="day-tasks"></div>
+        </div>
+        <div class="day-column" data-day="thu">
+          <div class="day-header">四</div>
+          <div class="day-tasks"></div>
+        </div>
+        <div class="day-column" data-day="fri">
+          <div class="day-header">五</div>
+          <div class="day-tasks"></div>
+        </div>
+        <div class="day-column" data-day="sat">
+          <div class="day-header">六</div>
+          <div class="day-tasks"></div>
+        </div>
+        <div class="day-column" data-day="sun">
+          <div class="day-header">日</div>
+          <div class="day-tasks"></div>
+        </div>
+      </div>
+    `;
+    this.weekRangeSpan = document.querySelector("#week-range");
+    this.weekNumberSpan = document.querySelector("#week-number");
+    this.dayColumns = {
+      mon: this.container.querySelector('[data-day="mon"] .day-tasks'),
+      tue: this.container.querySelector('[data-day="tue"] .day-tasks'),
+      wed: this.container.querySelector('[data-day="wed"] .day-tasks'),
+      thu: this.container.querySelector('[data-day="thu"] .day-tasks'),
+      fri: this.container.querySelector('[data-day="fri"] .day-tasks'),
+      sat: this.container.querySelector('[data-day="sat"] .day-tasks'),
+      sun: this.container.querySelector('[data-day="sun"] .day-tasks'),
+    };
   }
 
-  bindEvents() {
-    // 暫時保留，之後會加入拖曳功能
+  setupEventListeners() {
+    const prevBtn = document.querySelector("#prev-week");
+    if (prevBtn) {
+      prevBtn.addEventListener("click", () => {
+        this.currentWeekOffset--;
+        this.render();
+      });
+    }
+    const nextBtn = document.querySelector("#next-week");
+    if (nextBtn) {
+      nextBtn.addEventListener("click", () => {
+        this.currentWeekOffset++;
+        this.render();
+      });
+    }
+    const todayBtn = document.querySelector("#back-to-today");
+    if (todayBtn) {
+      todayBtn.addEventListener("click", () => {
+        this.currentWeekOffset = 0;
+        this.render();
+      });
+    }
   }
 
-  // 取得指定星期的待辦事項
-  getTodosByDay(day) {
-    return todos.filter((todo) => todo.weekDay === day && !todo.completed);
+  getCurrentWeekDates() {
+    const today = new Date();
+    const currentDay = today.getDay();
+    const thisMonday = new Date(today);
+    const daysFromMonday = currentDay === 0 ? 6 : currentDay - 1;
+    thisMonday.setDate(today.getDate() - daysFromMonday);
+    const targetMonday = new Date(thisMonday);
+    targetMonday.setDate(thisMonday.getDate() + this.currentWeekOffset * 7);
+    const targetSunday = new Date(targetMonday);
+    targetSunday.setDate(targetMonday.getDate() + 6);
+    const startOfYear = new Date(targetMonday.getFullYear(), 0, 1);
+    const daysSinceStart = Math.floor(
+      (targetMonday - startOfYear) / (24 * 60 * 60 * 1000)
+    );
+    const weekNumber = Math.ceil(
+      (daysSinceStart + startOfYear.getDay() + 1) / 7
+    );
+    return {
+      monday: targetMonday,
+      sunday: targetSunday,
+      weekNumber: weekNumber,
+      dates: this.generateWeekDates(targetMonday),
+    };
   }
 
-  // 渲染整個周計劃
+  generateWeekDates(monday) {
+    const dates = {};
+    const days = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+    days.forEach((day, index) => {
+      const date = new Date(monday);
+      date.setDate(monday.getDate() + index);
+      dates[day] = date;
+    });
+    return dates;
+  }
+
+  formatDate(date) {
+    return `${date.getMonth() + 1}/${date.getDate()}`;
+  }
+
+  updateWeekInfo() {
+    const weekData = this.getCurrentWeekDates();
+    if (this.weekNumberSpan) {
+      this.weekNumberSpan.textContent = `第 ${weekData.weekNumber} 週`;
+    }
+    if (this.weekRangeSpan) {
+      const startDate = this.formatDate(weekData.monday);
+      const endDate = this.formatDate(weekData.sunday);
+      this.weekRangeSpan.textContent = `(${startDate}-${endDate})`;
+    }
+    const todayBtn = document.querySelector("#back-to-today");
+    if (todayBtn) {
+      if (this.currentWeekOffset === 0) {
+        todayBtn.style.opacity = "0.5";
+        todayBtn.disabled = true;
+      } else {
+        todayBtn.style.opacity = "1";
+        todayBtn.disabled = false;
+      }
+    }
+  }
+
   render() {
-    if (!this.weekGrid) return;
+    this.updateWeekInfo();
 
-    this.dayColumns.forEach((column) => {
-      const day = column.dataset.day;
-      const taskList = column.querySelector(".day-task-list");
+    // 🆕 更新每個星期欄位的日期
+    this.updateDayHeaders();
 
-      if (taskList) {
-        taskList.innerHTML = "";
-        const dayTodos = this.getTodosByDay(day);
+    // 清空所有欄位
+    Object.values(this.dayColumns).forEach((column) => {
+      if (column) column.innerHTML = "";
+    });
 
-        dayTodos.forEach((todo) => {
+    if (!window.todos || !Array.isArray(window.todos)) return;
+
+    const weekData = this.getCurrentWeekDates();
+
+    // ✅ 新版代碼：同時支持 weekDay 和 days
+    window.todos.forEach((todo) => {
+      // 🔧 支持兩種數據格式：
+      // 1. weekDay (字串) - 新版編輯對話框使用
+      // 2. days (陣列) - 舊版或多天任務
+
+      if (todo.weekDay) {
+        // 處理單個星期（字串格式）
+        const column = this.dayColumns[todo.weekDay];
+        if (column) {
           const taskElement = this.createTaskElement(todo);
-          taskList.appendChild(taskElement);
+          column.appendChild(taskElement);
+        }
+      } else if (todo.days && Array.isArray(todo.days)) {
+        // 處理多個星期（陣列格式）
+        todo.days.forEach((day) => {
+          const column = this.dayColumns[day];
+          if (column) {
+            const taskElement = this.createTaskElement(todo);
+            column.appendChild(taskElement);
+          }
         });
-
-        // 顯示任務數量
-        column.querySelector("h3").textContent = `${this.getDayName(day)} (${
-          dayTodos.length
-        })`;
       }
     });
 
     this.highlightToday();
-    console.log("✅ 周計劃已更新");
   }
 
-  // 創建任務元素
+  // 🆕 更新每個星期欄位的標題（顯示日期）
+  updateDayHeaders() {
+    const weekData = this.getCurrentWeekDates();
+    const days = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+    const dayNames = ["一", "二", "三", "四", "五", "六", "日"];
+
+    days.forEach((day, index) => {
+      const dayColumn = this.container.querySelector(`[data-day="${day}"]`);
+      if (dayColumn) {
+        const dayHeader = dayColumn.querySelector(".day-header");
+        const date = weekData.dates[day];
+        const dateStr = this.formatDate(date);
+
+        if (dayHeader) {
+          // 顯示「星期 (日期)」，例如「一 (1/13)」
+          dayHeader.textContent = `${dayNames[index]} (${dateStr})`;
+        }
+      }
+    });
+  }
+
   createTaskElement(todo) {
     const li = document.createElement("li");
     li.className = "week-task-item";
-    li.dataset.todoId = todo.id;
+    li.dataset.id = todo.id;
+    if (todo.completed) {
+      li.classList.add("completed");
+    }
 
-    // 根據專案給予不同顏色
-    const projectColor = this.getProjectColor(todo.project);
+    // 🆕 添加點擊編輯功能
+    li.style.cursor = "pointer";
+    li.title = "點擊編輯任務";
 
+    const progress = todo.progress || 0;
+    const progressBar = `
+    <div class="task-progress-bar">
+      <div class="task-progress-fill" style="width: ${progress}%"></div>
+    </div>
+  `;
     li.innerHTML = `
-      <div class="task-header" style="border-left: 4px solid ${projectColor}">
-        <span class="task-title">${this.escapeHtml(
-          todo.text || todo.title
-        )}</span>
-        <button class="task-complete-btn" data-id="${todo.id}">✓</button>
-      </div>
-      ${todo.project ? `<div class="task-project">${todo.project}</div>` : ""}
-    `;
+    <div class="task-header">
+      <span class="task-text">${this.escapeHtml(todo.text || todo.title)}</span>
+      <button class="task-complete-btn" title="標記完成">✓</button>
+    </div>
+    ${progress > 0 ? progressBar : ""}
+    ${
+      todo.project
+        ? `<div class="task-project" style="color: ${this.getProjectColor(
+            todo.project
+          )}">${todo.project}</div>`
+        : ""
+    }
+  `;
 
-    // 綁定完成按鈕
+    // 🆕 點擊任務區域編輯
+    li.addEventListener("click", (e) => {
+      // 如果點擊的是完成按鈕，不觸發編輯
+      if (e.target.classList.contains("task-complete-btn")) {
+        return;
+      }
+      e.stopPropagation();
+      // 觸發待辦清單的編輯功能
+      if (window.todoApp && window.todoApp.editTodo) {
+        window.todoApp.editTodo(todo.id);
+      }
+    });
+
     const completeBtn = li.querySelector(".task-complete-btn");
     completeBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       this.completeTodo(todo.id);
     });
-
     return li;
   }
 
-  // 完成待辦事項
   completeTodo(id) {
-    const todo = todos.find((t) => t.id === id);
+    const todo = window.todos.find((t) => t.id === id);
     if (todo) {
       todo.completed = true;
-
-      // 同步更新所有視圖
-      if (todoApp) todoApp.saveTodos();
+      if (window.todoApp) {
+        window.todoApp.saveTodos();
+      } else {
+        localStorage.setItem("todos", JSON.stringify(window.todos));
+      }
       this.render();
-      if (ganttChart) ganttChart.render();
-
-      console.log(`✅ 完成任務: ${todo.text || todo.title}`);
+      if (window.ganttChart) {
+        window.ganttChart.render();
+      }
     }
   }
 
-  // 取得星期中文名稱
-  getDayName(day) {
-    const names = {
-      mon: "一",
-      tue: "二",
-      wed: "三",
-      thu: "四",
-      fri: "五",
-      sat: "六",
-      sun: "日",
-    };
-    return names[day] || day;
-  }
-
-  // 取得專案顏色
-  getProjectColor(project) {
-    const colors = {
-      Hygge: "#8b5cf6",
-      作品集: "#06b6d4",
-      學習: "#10b981",
-      運動: "#f59e0b",
-      生活: "#ef4444",
-    };
-    return colors[project] || "#999";
-  }
-
-  escapeHtml(text) {
-    const div = document.createElement("div");
-    div.textContent = text;
-    return div.innerHTML;
-  }
-
-  // 更新周日期範圍
-  updateWeekRange() {
-    const weekRangeSpan = document.querySelector("#week-range");
-    if (!weekRangeSpan) return;
-
-    const today = new Date();
-    const dayOfWeek = today.getDay();
-
-    // 計算本週一的日期
-    const monday = new Date(today);
-    monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
-
-    // 計算本週日的日期
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
-
-    // 格式化顯示
-    const format = (date) => `${date.getMonth() + 1}/${date.getDate()}`;
-    weekRangeSpan.textContent = `(${format(monday)} - ${format(sunday)})`;
-  }
-
-  // 高亮今天
   highlightToday() {
+    if (this.currentWeekOffset !== 0) {
+      this.container.querySelectorAll(".day-column").forEach((col) => {
+        col.classList.remove("today");
+      });
+      return;
+    }
     const today = new Date().getDay();
     const dayMap = {
       0: "sun",
@@ -1532,19 +1427,40 @@ class WeeklyPlanner {
       5: "fri",
       6: "sat",
     };
-
     const todayDay = dayMap[today];
-
-    // 移除所有 today class
-    this.dayColumns.forEach((col) => col.classList.remove("today"));
-
-    // 加到今天的欄位
-    const todayColumn = document.querySelector(`[data-day="${todayDay}"]`);
+    this.container.querySelectorAll(".day-column").forEach((col) => {
+      col.classList.remove("today");
+    });
+    const todayColumn = this.container.querySelector(
+      `[data-day="${todayDay}"]`
+    );
     if (todayColumn) {
       todayColumn.classList.add("today");
     }
   }
-} // ⬅️ WeeklyPlanner 類別結束
+
+  escapeHtml(text) {
+    const div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  getProjectColor(project) {
+    const colors = {
+      Hygge: "#8b5cf6",
+      作品集: "#06b6d4",
+      學習: "#10b981",
+      運動: "#f59e0b",
+      生活: "#ef4444",
+    };
+    return colors[project] || "#999";
+  }
+}
+
+// 初始化（在 DOM 載入完成後）
+document.addEventListener("DOMContentLoaded", () => {
+  window.weeklyPlanner = new WeeklyPlanner();
+});
 
 // ==================== 📊 甘特圖功能 ====================
 class GanttChart {
@@ -1565,57 +1481,44 @@ class GanttChart {
     this.emptyState = document.querySelector(".gantt-empty");
   }
 
-  bindEvents() {
-    // 暫時保留
-  }
+  bindEvents() {}
 
-  // 取得有專案的待辦事項
   getProjectTodos() {
     return todos.filter((todo) => todo.project && !todo.completed);
   }
 
-  // 按專案分組
   groupByProject() {
     const projects = {};
-
     this.getProjectTodos().forEach((todo) => {
       if (!projects[todo.project]) {
         projects[todo.project] = [];
       }
       projects[todo.project].push(todo);
     });
-
     return projects;
   }
 
-  // 計算專案平均進度
   calculateProjectProgress(todos) {
     if (todos.length === 0) return 0;
     const total = todos.reduce((sum, todo) => sum + (todo.progress || 0), 0);
     return Math.round(total / todos.length);
   }
 
-  // 渲染甘特圖
   render() {
     if (!this.ganttList) return;
-
     const projects = this.groupByProject();
     const projectKeys = Object.keys(projects);
-
     if (projectKeys.length === 0) {
       this.ganttList.style.display = "none";
       this.emptyState.style.display = "block";
       return;
     }
-
     this.ganttList.style.display = "flex";
     this.emptyState.style.display = "none";
     this.ganttList.innerHTML = "";
-
     projectKeys.forEach((projectName) => {
       const projectTodos = projects[projectName];
       const avgProgress = this.calculateProjectProgress(projectTodos);
-
       const ganttItem = this.createGanttItem(
         projectName,
         avgProgress,
@@ -1623,17 +1526,13 @@ class GanttChart {
       );
       this.ganttList.appendChild(ganttItem);
     });
-
     console.log("✅ 甘特圖已更新");
   }
 
-  // 創建甘特圖項目
   createGanttItem(projectName, progress, todos) {
     const div = document.createElement("div");
     div.className = "gantt-item";
-
     const projectColor = this.getProjectColor(projectName);
-
     div.innerHTML = `
       <div class="gantt-title">
         <span class="project-name">${projectName}</span>
@@ -1648,26 +1547,20 @@ class GanttChart {
         <button class="gantt-view-btn" data-project="${projectName}">查看任務</button>
       </div>
     `;
-
-    // 綁定查看按鈕
     const viewBtn = div.querySelector(".gantt-view-btn");
     viewBtn.addEventListener("click", () => {
       this.showProjectTasks(projectName, todos);
     });
-
     return div;
   }
 
-  // 顯示專案任務列表
   showProjectTasks(projectName, todos) {
     const taskList = todos
       .map((todo) => `• ${todo.title} (${todo.progress || 0}%)`)
       .join("\n");
-
     alert(`📊 ${projectName} 任務清單：\n\n${taskList}`);
   }
 
-  // 取得專案顏色
   getProjectColor(project) {
     const colors = {
       Hygge: "#8b5cf6",
@@ -1681,56 +1574,41 @@ class GanttChart {
 }
 
 // ==================== 🔗 待辦清單增強版 ====================
-// 擴展原有的 TodoApp 類別
-
-// 儲存原始的 addTodo 方法
 const originalAddTodo = TodoApp.prototype.addTodo;
-
-// 覆寫 addTodo 方法，加入對話框
 TodoApp.prototype.addTodo = function () {
   const text = this.todoInput.value.trim();
-
   if (!text) {
     alert("請輸入待辦事項！");
     return;
   }
-
-  // 詢問是否要加入周計劃或專案
   const action = confirm(
     "是否要將此任務加入周計劃或專案？\n\n" +
       "按「確定」開啟設定\n" +
       "按「取消」只建立一般待辦"
   );
-
   if (action) {
     this.showTaskSettings(text);
   } else {
-    // 使用原始方法建立一般待辦
     originalAddTodo.call(this);
   }
 };
 
-// 新增任務設定對話框
 TodoApp.prototype.showTaskSettings = function (text) {
   const weekDay = prompt(
     "📅 分配到星期幾？\n\n" +
       "輸入: mon, tue, wed, thu, fri, sat, sun\n" +
       "(留空 = 不加入周計劃)"
   );
-
   const project = prompt(
     "📊 專案名稱？\n\n" +
       "建議: Hygge, 作品集, 學習, 運動, 生活\n" +
       "(留空 = 不加入專案)"
   );
-
   let progress = 0;
   if (project) {
     const progressInput = prompt("進度 (0-100):", "0");
     progress = Math.max(0, Math.min(100, parseInt(progressInput) || 0));
   }
-
-  // 建立增強版待辦事項
   const newTodo = {
     id: "todo-" + Date.now(),
     text: text,
@@ -1742,43 +1620,27 @@ TodoApp.prototype.showTaskSettings = function (text) {
     startDate: new Date().toISOString().split("T")[0],
     endDate: null,
   };
-
   this.todos.push(newTodo);
   this.saveTodos();
   this.render();
-
   this.todoInput.value = "";
   this.todoInput.focus();
-
-  // 同步更新周計劃和甘特圖
   if (weeklyPlanner) weeklyPlanner.render();
   if (ganttChart) ganttChart.render();
-
   console.log("✅ 新增增強版待辦:", newTodo);
 };
 
-// 擴展 saveTodos 方法
 const originalSaveTodos = TodoApp.prototype.saveTodos;
 TodoApp.prototype.saveTodos = function () {
-  // 同步到全域 todos
-  todos = this.todos;
-
-  // 呼叫原始儲存方法
+  window.todos = this.todos; // 加上 window.
   originalSaveTodos.call(this);
-
-  // 更新其他視圖
   if (weeklyPlanner) weeklyPlanner.render();
   if (ganttChart) ganttChart.render();
 };
-
-// 擴展 loadTodos 方法
 const originalLoadTodos = TodoApp.prototype.loadTodos;
 TodoApp.prototype.loadTodos = function () {
   const loaded = originalLoadTodos.call(this);
-
-  // 同步到全域 todos
-  todos = loaded;
-
+  window.todos = loaded; // 加上 window.
   return loaded;
 };
 
