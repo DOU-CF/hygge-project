@@ -1,177 +1,165 @@
 // ==================== 專案初始化 ====================
-// 除錯用：確認 JS 檔案已成功載入
 console.log("Hygge 專案啟動成功！");
 console.log("📅 載入時間:", new Date().toLocaleString("zh-TW"));
+console.log("🆕 升級版：支援多卡片並排顯示 + 響應式設計 + 喝水提醒");
 
-// Day 4: Dock 點擊互動
-window.addEventListener("DOMContentLoaded", function () {
-  console.log("✅ DOM 載入完成，開始初始化功能...");
-  // 選取所有 Dock 工具
-  const dockItems = document.querySelectorAll(".dock-item");
+// ==================== 全域變數 ====================
+let todoApp = null;
+let pomodoroTimer = null;
+let waterReminder = null;
 
-  // 選取卡片系統相關元素
-  // 因為我們改用 專屬的待辦清單卡片 (#todo-widget)，所以 Day 4 的程式碼需要調整。
-  // Day 5: html 已刪 id="overlay", id="widget", id=... ⚠️ 這邊會找不到元素，所以是 null
-  //const overlay = document.getElementById("overlay");
-  //const widgetCard = document.getElementById("widgetCard");
-  //const cardTitle = document.getElementById("cardTitle");
-  //const cardBody = document.getElementById("cardBody");
-  //const closeBtn = document.getElementById("closeBtn");
-
-  //選取待辦清單卡片
-  const todoWidget = document.querySelector("#todo-widget");
-  const closeBtn = document.querySelector('[data-close="todo"]');
-
-  // 檢查必要元素是否存在（方便偵錯）
-  if (dockItems.length === 0) {
-    console.warn("找不到任何 .dock-item");
-  }
-  //if (!overlay || !widgetCard || !cardTitle || !cardBody || !closeBtn) {
-  //console.warn(
-  //"Modal 或其子元素未正確命名或不存在 (overlay, widgetCard, cardTitle, cardBody, closeBtn)"
-
-  if (!todoWidget) {
-    console.warn("找不到 #todo-widget");
+// ==================== 卡片管理系統 ====================
+class WidgetManager {
+  constructor() {
+    this.activeWidgets = new Set(); // 記錄已開啟的卡片
+    this.init();
   }
 
-  // 為每個工具加上點擊事件
-  dockItems.forEach((item) => {
-    item.addEventListener("click", function (e) {
-      // 防止點擊冒泡影響（如需要）
-      e.stopPropagation();
-      // 取得工具的類型
-      const widgetType = this.dataset.widget || "未知";
+  init() {
+    this.bindDockEvents();
+    this.bindCloseEvents();
+    this.bindKeyboardEvents();
+    console.log("✅ WidgetManager 初始化完成");
+  }
 
-      //openWidget(widgetType);
-      // 處理不同的工具
-      if (widgetType === "todo") {
-        openTodoWidget();
-      } else if (widgetType === "pomodoro") {
-        openPomodoroWidget();
-      } else {
-        alert(`${widgetType} 功能開發中，敬請期待！`);
+  // 綁定 Dock 點擊事件
+  bindDockEvents() {
+    const dockItems = document.querySelectorAll(".dock-item");
+
+    dockItems.forEach((item) => {
+      item.addEventListener("click", () => {
+        const widgetType = item.dataset.widget;
+        this.toggleWidget(widgetType, item);
+      });
+    });
+  }
+
+  // 🆕 切換卡片（開啟/關閉）
+  toggleWidget(type, dockItem) {
+    const widget = document.querySelector(`#${type}-widget`);
+    const welcomeMsg = document.querySelector(".welcome-message");
+
+    if (!widget) {
+      alert(`${type} 功能開發中，敬請期待！`);
+      return;
+    }
+
+    // 如果卡片已開啟，則關閉
+    if (this.activeWidgets.has(type)) {
+      this.closeWidget(type, dockItem);
+    } else {
+      this.openWidget(type, widget, dockItem, welcomeMsg);
+    }
+  }
+
+  // 🆕 開啟卡片
+  openWidget(type, widget, dockItem, welcomeMsg) {
+    // 隱藏歡迎訊息
+    if (welcomeMsg) {
+      welcomeMsg.style.display = "none";
+    }
+
+    // 顯示卡片
+    widget.classList.add("active");
+    widget.style.display = "block";
+
+    // 標記 Dock 項目為啟用
+    if (dockItem) {
+      dockItem.classList.add("active");
+    }
+
+    // 記錄到已開啟集合
+    this.activeWidgets.add(type);
+
+    // 初始化對應的功能
+    this.initWidgetFunction(type);
+
+    console.log(`✅ 開啟卡片: ${type}`);
+  }
+
+  // 🆕 關閉卡片
+  closeWidget(type, dockItem) {
+    const widget = document.querySelector(`#${type}-widget`);
+
+    if (widget) {
+      widget.classList.remove("active");
+      widget.style.display = "none";
+    }
+
+    // 移除 Dock 項目的啟用狀態
+    if (dockItem) {
+      dockItem.classList.remove("active");
+    } else {
+      // 如果沒有傳入 dockItem，手動查找
+      const dockItems = document.querySelectorAll(".dock-item");
+      dockItems.forEach((item) => {
+        if (item.dataset.widget === type) {
+          item.classList.remove("active");
+        }
+      });
+    }
+
+    // 從已開啟集合中移除
+    this.activeWidgets.delete(type);
+
+    // 如果沒有任何卡片開啟，顯示歡迎訊息
+    if (this.activeWidgets.size === 0) {
+      const welcomeMsg = document.querySelector(".welcome-message");
+      if (welcomeMsg) {
+        welcomeMsg.style.display = "block";
+      }
+    }
+
+    console.log(`✅ 關閉卡片: ${type}`);
+  }
+
+  // 初始化對應功能
+  initWidgetFunction(type) {
+    switch (type) {
+      case "todo":
+        if (!todoApp) {
+          todoApp = new TodoApp();
+        }
+        break;
+      case "pomodoro":
+        if (!pomodoroTimer) {
+          pomodoroTimer = new PomodoroTimer();
+        }
+        break;
+      case "water":
+        if (!waterReminder) {
+          waterReminder = new WaterReminder();
+        }
+        break;
+    }
+  }
+
+  // 綁定關閉按鈕事件
+  bindCloseEvents() {
+    const closeButtons = document.querySelectorAll(".close-btn");
+
+    closeButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const widgetType = btn.dataset.close;
+        this.closeWidget(widgetType);
+      });
+    });
+  }
+
+  // 綁定鍵盤事件（Esc 關閉所有卡片）
+  bindKeyboardEvents() {
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        // 關閉所有卡片
+        this.activeWidgets.forEach((type) => {
+          this.closeWidget(type);
+        });
       }
     });
-  });
-
-  // 開啟卡片的函數
-  //function openWidget(type) {
-  //if (!overlay || !widgetCard || !cardTitle || !cardBody) return;
-  // 設計卡片標題
-  //cardTitle.textContent = getWidgetTitle(type);
-
-  // 設定卡片內容
-  //cardBody.innerHTML = getWidgetContent(type);
-
-  // 顯示遮罩和卡片 （加上 active class)
-  //overlay.classList.add("active");
-  //widgetCard.classList.add("active");
-  //}
-
-  // 關閉卡片的函數
-  //function closeWidget() {
-  //if (!overlay || !widgetCard) return;
-  // 移除 active class 來隱藏
-  //overlay.classList.remove("active");
-  //widgetCard.classList.remove("active");
-  //}
-
-  // 關閉按鈕的點擊事件
-  //if (closeBtn) closeBtn.addEventListener("click", closeWidget);
-
-  // 點擊遮罩也可以關閉卡片
-  //if (overlay) overlay.addEventListener("click", closeWidget);
-
-  // 支援按 Esc 關閉
-  //document.addEventListener("keydown", function (e) {
-  //if (e.key === "Escape") closeWidget();
-  //});
-
-  // 取得卡片標題的函數
-  // function getWidgetTitle(type) {
-  //   const titles = {
-  //     todo: "📝 待辦清單",
-  //     pomodoro: "🍅 番茄鐘",
-  //     water: "💧 喝水提醒",
-  //     weather: "🌤️ 天氣",
-  //     note: "📒 筆記",
-  //   };
-  //   return titles[type] || "❓ 未知工具";
-  // }
-
-  // 取得卡片內容的函數
-  // function getWidgetContent(type) {
-  //   const contents = {
-  //    todo: "<p>這是待辦清單的內容</p><p>（Day 5 會開發的實際功能）</p>",
-  //     pomodoro: "<p>這是番茄鐘的內容</p><p>（Day 6 會開發的實際功能）</p>",
-  //     water: "<p>這是喝水提醒的內容</p><p>（未來會開發）</p>",
-  //     weather: "<p>這是天氣的內容</p><p>（未來會開發）</p>",
-  //     note: "<p>這是筆記的內容</p><p>（未來會開發）</p>",
-  //   };
-  //   return contents[type] || "<p>❌ 找不到對應的內容</p>";
-  // }
-
-  // 開啟待辦清單卡片
-  function openTodoWidget() {
-    if (todoWidget) {
-      todoWidget.style.display = "block";
-      // 可選：加入淡入動畫
-      todoWidget.style.animation = "fadeIn 0.3s ease";
-    }
   }
-
-  // 關閉待辦清單卡片
-  function closeTodoWidget() {
-    if (todoWidget) {
-      todoWidget.style.display = "none";
-    }
-  }
-
-  // 開啟番茄鐘卡片
-  function openPomodoroWidget() {
-    const pomodoroWidget = document.querySelector("#pomodoro-widget");
-    if (pomodoroWidget) {
-      pomodoroWidget.style.display = "block";
-      pomodoroWidget.style.animation = "fadeIn 0.3s ease";
-      console.log("🍅 番茄鐘卡片已開啟");
-    }
-  }
-
-  // 關閉番茄鐘卡片
-  function closePomodoroWidget() {
-    const pomodoroWidget = document.querySelector("#pomodoro-widget");
-    if (pomodoroWidget) {
-      pomodoroWidget.style.display = "none";
-      console.log("🍅 番茄鐘卡片已關閉");
-    }
-  }
-
-  // 關閉按鈕事件（處理所有卡片）
-  const closeButtons = document.querySelectorAll(".close-btn");
-  closeButtons.forEach((btn) => {
-    btn.addEventListener("click", function () {
-      const closeType = this.dataset.close;
-      if (closeType === "todo") {
-        closeTodoWidget();
-      } else if (closeType === "pomodoro") {
-        closePomodoroWidget();
-      }
-    });
-  });
-
-  // 按 Esc 鍵關閉所有卡片
-  document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape") {
-      closeTodoWidget();
-      closePomodoroWidget();
-    }
-  });
-
-  console.log("Dock 點擊事件已載入！");
-});
+}
 
 // ==================== Day 5: 待辦清單功能 ====================
-
 class TodoApp {
   constructor() {
     console.log("📝 TodoApp 初始化中...");
@@ -179,7 +167,6 @@ class TodoApp {
     this.init();
   }
 
-  // 初始化
   init() {
     this.cacheDom();
     this.bindEvents();
@@ -187,7 +174,6 @@ class TodoApp {
     console.log("✅ TodoApp 初始化完成！");
   }
 
-  // 快取 DOM 元素
   cacheDom() {
     this.todoInput = document.querySelector("#todo-input");
     this.addBtn = document.querySelector("#add-todo-btn");
@@ -197,27 +183,19 @@ class TodoApp {
     this.clearBtn = document.querySelector("#clear-completed-btn");
   }
 
-  // 綁定事件
   bindEvents() {
-    // 檢查元素是否存在
     if (!this.addBtn || !this.todoInput || !this.clearBtn) {
-      console.warn("⚠️ 待辦清單元素未找到，跳過事件綁定");
+      console.warn("⚠️ 待辦清單元素未找到");
       return;
     }
 
-    // 新增待辦
     this.addBtn.addEventListener("click", () => this.addTodo());
-
-    // Enter 鍵新增
     this.todoInput.addEventListener("keypress", (e) => {
       if (e.key === "Enter") this.addTodo();
     });
-
-    // 清除已完成
     this.clearBtn.addEventListener("click", () => this.clearCompleted());
   }
 
-  // 新增待辦
   addTodo() {
     const text = this.todoInput.value.trim();
 
@@ -237,40 +215,29 @@ class TodoApp {
     this.saveTodos();
     this.render();
 
-    // 清空輸入框
     this.todoInput.value = "";
     this.todoInput.focus();
 
     console.log("✅ 新增待辦:", text);
   }
 
-  // 切換完成狀態
   toggleTodo(id) {
     const todo = this.todos.find((t) => t.id === id);
     if (todo) {
       todo.completed = !todo.completed;
       this.saveTodos();
       this.render();
-      console.log(
-        `✅ 切換待辦狀態: ${todo.text} → ${
-          todo.completed ? "已完成" : "未完成"
-        }`
-      );
     }
   }
 
-  // 刪除待辦
   deleteTodo(id) {
-    const todo = this.todos.find((t) => t.id === id);
     if (confirm("確定要刪除這個待辦事項嗎？")) {
       this.todos = this.todos.filter((t) => t.id !== id);
       this.saveTodos();
       this.render();
-      console.log("✅ 刪除待辦:", todo?.text);
     }
   }
 
-  // 清除已完成
   clearCompleted() {
     const completedCount = this.todos.filter((t) => t.completed).length;
 
@@ -283,21 +250,16 @@ class TodoApp {
       this.todos = this.todos.filter((t) => !t.completed);
       this.saveTodos();
       this.render();
-      console.log(`✅ 清除 ${completedCount} 個已完成項目`);
     }
   }
 
-  // 渲染畫面
   render() {
     if (!this.todoList || !this.emptyState || !this.todoCount) {
-      console.warn("⚠️ 待辦清單 DOM 元素未找到");
       return;
     }
 
-    // 清空列表
     this.todoList.innerHTML = "";
 
-    // 顯示/隱藏空狀態
     if (this.todos.length === 0) {
       this.emptyState.style.display = "block";
       this.todoList.style.display = "none";
@@ -305,23 +267,19 @@ class TodoApp {
       this.emptyState.style.display = "none";
       this.todoList.style.display = "block";
 
-      // 渲染每個待辦
       this.todos.forEach((todo) => {
         const li = this.createTodoElement(todo);
         this.todoList.appendChild(li);
       });
     }
 
-    // 更新計數
     const activeCount = this.todos.filter((t) => !t.completed).length;
     this.todoCount.textContent = `共 ${this.todos.length} 項 (${activeCount} 項未完成)`;
   }
 
-  // 建立待辦元素
   createTodoElement(todo) {
     const li = document.createElement("li");
     li.className = `todo-item ${todo.completed ? "completed" : ""}`;
-    li.dataset.id = todo.id;
 
     li.innerHTML = `
       <input 
@@ -333,7 +291,6 @@ class TodoApp {
       <button class="todo-delete-btn">刪除</button>
     `;
 
-    // 綁定事件
     const checkbox = li.querySelector(".todo-checkbox");
     const deleteBtn = li.querySelector(".todo-delete-btn");
 
@@ -343,77 +300,39 @@ class TodoApp {
     return li;
   }
 
-  // 防止 XSS 攻擊
   escapeHtml(text) {
     const div = document.createElement("div");
     div.textContent = text;
     return div.innerHTML;
   }
 
-  // 儲存到 localStorage
   saveTodos() {
     localStorage.setItem("hygge-todos", JSON.stringify(this.todos));
   }
 
-  // 從 localStorage 載入
   loadTodos() {
     const saved = localStorage.getItem("hygge-todos");
     return saved ? JSON.parse(saved) : [];
   }
 }
 
-// ==================== TodoApp 初始化 ====================
-// 當待辦清單卡片開啟時，初始化 TodoApp
-document.addEventListener("DOMContentLoaded", () => {
-  // 確保 Day 4 的程式碼已經執行
-  // 在使用者第一次點擊待辦清單時才初始化
-  let todoApp = null;
-
-  const todoWidget = document.querySelector("#todo-widget");
-
-  // 檢查元素是否存在
-  if (!todoWidget) {
-    console.warn("⚠️ 找不到 #todo-widget，待辦清單功能無法初始化");
-    return;
-  }
-
-  // 監聽卡片的顯示狀態
-  const observer = new MutationObserver(() => {
-    if (todoWidget.style.display !== "none" && !todoApp) {
-      todoApp = new TodoApp();
-    }
-  });
-
-  observer.observe(todoWidget, {
-    attributes: true,
-    attributeFilter: ["style"],
-  });
-});
-
-console.log("✅ 待辦清單功能已載入！");
-
 // ==================== Day 6: 番茄鐘功能 ====================
-
 class PomodoroTimer {
   constructor() {
     console.log("🍅 PomodoroTimer 初始化中...");
 
-    // 計時器設定（秒）
-    this.workTime = 25 * 60; // 工作時間：25分鐘
-    this.breakTime = 5 * 60; // 休息時間：5分鐘
-    this.timeLeft = this.workTime; // 剩餘時間
-    this.totalTime = this.workTime; // 總時間（用於計算進度）
+    this.workTime = 25 * 60;
+    this.breakTime = 5 * 60;
+    this.timeLeft = this.workTime;
+    this.totalTime = this.workTime;
 
-    // 計時器狀態
-    this.isRunning = false; // 是否運行中
-    this.isWorkTime = true; // 是否為工作時間
-    this.intervalId = null; // 計時器 ID
+    this.isRunning = false;
+    this.isWorkTime = true;
+    this.intervalId = null;
 
-    // 初始化
     this.init();
   }
 
-  // 初始化
   init() {
     this.cacheDom();
     this.bindEvents();
@@ -421,7 +340,6 @@ class PomodoroTimer {
     console.log("✅ PomodoroTimer 初始化完成！");
   }
 
-  // 快取 DOM 元素
   cacheDom() {
     this.timerDisplay = document.querySelector("#timer-display");
     this.minutesDisplay = document.querySelector("#timer-minutes");
@@ -435,7 +353,6 @@ class PomodoroTimer {
     this.breakTimeInput = document.querySelector("#break-time-input");
   }
 
-  // 綁定事件
   bindEvents() {
     if (!this.startBtn || !this.pauseBtn || !this.resetBtn) {
       console.warn("⚠️ 番茄鐘按鈕元素未找到");
@@ -446,7 +363,6 @@ class PomodoroTimer {
     this.pauseBtn.addEventListener("click", () => this.pause());
     this.resetBtn.addEventListener("click", () => this.reset());
 
-    // 設定變更事件
     if (this.workTimeInput) {
       this.workTimeInput.addEventListener("change", () =>
         this.updateSettings()
@@ -459,7 +375,6 @@ class PomodoroTimer {
     }
   }
 
-  // 開始計時
   start() {
     if (this.isRunning) return;
 
@@ -467,7 +382,6 @@ class PomodoroTimer {
     this.startBtn.disabled = true;
     this.pauseBtn.disabled = false;
 
-    // 更新狀態顯示
     if (this.isWorkTime) {
       this.statusText.textContent = "🎯 專注中...保持專注！";
       this.timerDisplay.classList.add("running");
@@ -478,7 +392,6 @@ class PomodoroTimer {
       this.timerDisplay.classList.remove("running", "paused");
     }
 
-    // 每秒執行一次
     this.intervalId = setInterval(() => {
       this.tick();
     }, 1000);
@@ -486,7 +399,6 @@ class PomodoroTimer {
     console.log("▶️ 計時器已開始");
   }
 
-  // 暫停計時
   pause() {
     if (!this.isRunning) return;
 
@@ -502,7 +414,6 @@ class PomodoroTimer {
     console.log("⏸️ 計時器已暫停");
   }
 
-  // 重置計時器
   reset() {
     this.pause();
     this.timeLeft = this.isWorkTime ? this.workTime : this.breakTime;
@@ -519,31 +430,26 @@ class PomodoroTimer {
     console.log("↻ 計時器已重置");
   }
 
-  // 每秒執行
   tick() {
     this.timeLeft--;
     this.updateDisplay();
     this.updateProgress();
 
-    // 時間到了
     if (this.timeLeft <= 0) {
       this.complete();
     }
   }
 
-  // 完成一個循環
   complete() {
     this.pause();
 
     if (this.isWorkTime) {
-      // 工作完成，進入休息
       alert("🎉 專注時間結束！休息一下吧！");
       this.isWorkTime = false;
       this.timeLeft = this.breakTime;
       this.totalTime = this.breakTime;
       this.statusText.textContent = "準備休息 5 分鐘";
     } else {
-      // 休息完成，回到工作
       alert("✨ 休息結束！準備繼續加油！");
       this.isWorkTime = true;
       this.timeLeft = this.workTime;
@@ -554,11 +460,8 @@ class PomodoroTimer {
     this.updateDisplay();
     this.updateProgress();
     this.timerDisplay.classList.remove("running", "paused", "break");
-
-    console.log(`✅ ${this.isWorkTime ? "工作" : "休息"}階段完成`);
   }
 
-  // 更新畫面顯示
   updateDisplay() {
     if (!this.minutesDisplay || !this.secondsDisplay) return;
 
@@ -569,7 +472,6 @@ class PomodoroTimer {
     this.secondsDisplay.textContent = String(seconds).padStart(2, "0");
   }
 
-  // 更新進度條
   updateProgress() {
     if (!this.progressBar) return;
 
@@ -577,7 +479,6 @@ class PomodoroTimer {
     this.progressBar.style.width = `${progress}%`;
   }
 
-  // 更新設定
   updateSettings() {
     if (!this.workTimeInput || !this.breakTimeInput) return;
 
@@ -587,42 +488,185 @@ class PomodoroTimer {
     this.workTime = newWorkTime * 60;
     this.breakTime = newBreakTime * 60;
 
-    // 如果當前沒有運行，更新時間
     if (!this.isRunning) {
       this.timeLeft = this.isWorkTime ? this.workTime : this.breakTime;
       this.totalTime = this.timeLeft;
       this.updateDisplay();
       this.updateProgress();
-
-      console.log(
-        `⚙️ 設定已更新：工作 ${newWorkTime} 分鐘，休息 ${newBreakTime} 分鐘`
-      );
     }
   }
 }
 
-// ==================== PomodoroTimer 初始化 ====================
-document.addEventListener("DOMContentLoaded", () => {
-  let pomodoroTimer = null;
+// ==================== 🆕 Day 7: 喝水提醒功能 ====================
+class WaterReminder {
+  constructor() {
+    console.log("💧 WaterReminder 初始化中...");
 
-  const pomodoroWidget = document.querySelector("#pomodoro-widget");
+    // 喝水記錄
+    this.waterCount = this.loadWaterCount();
+    this.waterGoal = 8; // 目標 8 杯
+    this.reminderInterval = null;
+    this.reminderEnabled = true;
+    this.reminderTime = 60; // 預設 60 分鐘提醒一次
 
-  if (!pomodoroWidget) {
-    console.warn("⚠️ 找不到 #pomodoro-widget，番茄鐘功能無法初始化");
-    return;
+    this.init();
   }
 
-  // 監聽卡片的顯示狀態
-  const observer = new MutationObserver(() => {
-    if (pomodoroWidget.style.display !== "none" && !pomodoroTimer) {
-      pomodoroTimer = new PomodoroTimer();
-    }
-  });
+  init() {
+    this.cacheDom();
+    this.bindEvents();
+    this.render();
+    this.startReminder();
+    console.log("✅ WaterReminder 初始化完成！");
+  }
 
-  observer.observe(pomodoroWidget, {
-    attributes: true,
-    attributeFilter: ["style"],
-  });
+  cacheDom() {
+    this.waterAmount = document.querySelector("#water-amount");
+    this.waterGoalText = document.querySelector("#water-goal");
+    this.progressBar = document.querySelector("#water-progress-bar");
+    this.addBtn = document.querySelector("#add-water-btn");
+    this.resetBtn = document.querySelector("#reset-water-btn");
+    this.reminderToggle = document.querySelector("#reminder-toggle");
+    this.reminderTimeInput = document.querySelector("#reminder-time");
+  }
+
+  bindEvents() {
+    if (!this.addBtn || !this.resetBtn) {
+      console.warn("⚠️ 喝水提醒元素未找到");
+      return;
+    }
+
+    this.addBtn.addEventListener("click", () => this.addWater());
+    this.resetBtn.addEventListener("click", () => this.resetWater());
+
+    if (this.reminderToggle) {
+      this.reminderToggle.addEventListener("change", (e) => {
+        this.reminderEnabled = e.target.checked;
+        if (this.reminderEnabled) {
+          this.startReminder();
+        } else {
+          this.stopReminder();
+        }
+      });
+    }
+
+    if (this.reminderTimeInput) {
+      this.reminderTimeInput.addEventListener("change", (e) => {
+        this.reminderTime = parseInt(e.target.value) || 60;
+        this.startReminder(); // 重新啟動提醒
+      });
+    }
+  }
+
+  addWater() {
+    this.waterCount++;
+    this.saveWaterCount();
+    this.render();
+
+    // 達成目標時的提示
+    if (this.waterCount === this.waterGoal) {
+      alert("🎉 太棒了！你已經完成今天的喝水目標！");
+    }
+
+    console.log(`💧 喝水 +1，目前：${this.waterCount} 杯`);
+  }
+
+  resetWater() {
+    if (confirm("確定要重置喝水記錄嗎？")) {
+      this.waterCount = 0;
+      this.saveWaterCount();
+      this.render();
+      console.log("↻ 喝水記錄已重置");
+    }
+  }
+
+  render() {
+    if (!this.waterAmount || !this.progressBar) return;
+
+    // 更新數字顯示
+    this.waterAmount.textContent = this.waterCount;
+
+    // 更新進度條
+    const progress = Math.min((this.waterCount / this.waterGoal) * 100, 100);
+    this.progressBar.style.width = `${progress}%`;
+
+    // 更新目標顯示
+    if (this.waterGoalText) {
+      this.waterGoalText.textContent = `目標：${this.waterGoal} 杯 / 2000ml`;
+    }
+  }
+
+  // 開始提醒
+  startReminder() {
+    // 先停止現有的提醒
+    this.stopReminder();
+
+    if (!this.reminderEnabled) return;
+
+    // 設定新的提醒
+    const intervalMs = this.reminderTime * 60 * 1000; // 轉換成毫秒
+
+    this.reminderInterval = setInterval(() => {
+      this.showReminder();
+    }, intervalMs);
+
+    console.log(`⏰ 喝水提醒已啟動（每 ${this.reminderTime} 分鐘）`);
+  }
+
+  // 停止提醒
+  stopReminder() {
+    if (this.reminderInterval) {
+      clearInterval(this.reminderInterval);
+      this.reminderInterval = null;
+      console.log("⏰ 喝水提醒已停止");
+    }
+  }
+
+  // 顯示提醒
+  showReminder() {
+    if (this.waterCount < this.waterGoal) {
+      alert("💧 該喝水囉！補充水分保持健康！");
+      console.log("💧 顯示喝水提醒");
+    }
+  }
+
+  // 儲存到 localStorage
+  saveWaterCount() {
+    localStorage.setItem("hygge-water-count", this.waterCount.toString());
+    localStorage.setItem("hygge-water-date", new Date().toDateString());
+  }
+
+  // 從 localStorage 載入
+  loadWaterCount() {
+    const savedDate = localStorage.getItem("hygge-water-date");
+    const today = new Date().toDateString();
+
+    // 如果是新的一天，重置計數
+    if (savedDate !== today) {
+      localStorage.setItem("hygge-water-count", "0");
+      localStorage.setItem("hygge-water-date", today);
+      return 0;
+    }
+
+    const saved = localStorage.getItem("hygge-water-count");
+    return saved ? parseInt(saved) : 0;
+  }
+}
+
+// ==================== 程式啟動 ====================
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("🚀 Hygge 升級版啟動中...");
+
+  // 初始化卡片管理系統
+  const widgetManager = new WidgetManager();
+
+  console.log("✅ Hygge 升級版啟動完成！");
+  console.log("📝 功能列表：");
+  console.log("  - 待辦清單");
+  console.log("  - 番茄鐘");
+  console.log("  - 💧 喝水提醒（新增）");
+  console.log("  - 🆕 多卡片並排顯示");
+  console.log("  - 🆕 響應式設計");
 });
 
-console.log("✅ 番茄鐘功能已載入！");
+console.log("✅ 所有功能已載入！");

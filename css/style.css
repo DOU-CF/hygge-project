@@ -8,16 +8,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
   color: white;
-}
-
-h1 {
-  font-size: 48px;
-  margin-bottom: 20px;
 }
 
 /* ========== 導覽列 ========== */
@@ -26,6 +17,11 @@ h1 {
   backdrop-filter: blur(10px);
   padding: 1rem 2rem;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
 }
 
 .navbar .container {
@@ -59,18 +55,30 @@ h1 {
   background: rgba(102, 126, 234, 0.1);
 }
 
-/* ========== 工作區域 ========== */
+/* ========== 🆕 工作區域（並排顯示） ========== */
 .workspace {
+  /* 固定在導覽列下方、Dock 上方 */
   min-height: calc(100vh - 180px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
+  padding: 100px 20px 120px 20px;
+
+  /* 🆕 網格佈局，支援多卡片並排 */
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+
+  /* 對齊方式 */
+  align-content: start;
 }
 
+/* 歡迎訊息（沒有卡片時顯示） */
 .welcome-message {
+  /* 佔據整個網格 */
+  grid-column: 1 / -1;
   text-align: center;
   color: white;
+  padding: 60px 20px;
 }
 
 .welcome-message h1 {
@@ -95,6 +103,7 @@ h1 {
   border-radius: 20px;
   padding: 10px 20px;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  z-index: 100;
 }
 
 .dock-container {
@@ -118,6 +127,10 @@ h1 {
   transform: translateY(-5px);
 }
 
+.dock-item.active {
+  background: rgba(102, 126, 234, 0.2);
+}
+
 .dock-icon {
   font-size: 2rem;
 }
@@ -128,64 +141,40 @@ h1 {
   white-space: nowrap;
 }
 
-/* ========== 小工具容器 ========== */
-.widgets-container {
-  position: fixed;
-  top: 80px;
-  left: 0;
-  right: 0;
-  bottom: 100px;
-  pointer-events: none;
-  padding: 20px;
-}
-
-/* ========= 卡片視窗系統 ========= */
-/* 遮罩層 */
-.overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  /* 半透明黑色 */
-  background: rgba(0, 0, 0, 0.5);
-  /* 背景模糊效果 */
-  backdrop-filter: blur(5px);
-  /* 預設隱藏 */
-  display: none;
-  /* 確保在最上層 */
-  z-index: 999;
-}
-
-/* 顯示狀態 */
-.overlay.active {
-  display: block;
-  animation: fadeIn 0.3s ease;
-}
-
-/* 卡片視窗 */
+/* ========== 🆕 卡片系統（並排顯示） ========== */
 .widget-card {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  /* 置中技巧 */
-  transform: translate(-50%, -50%);
+  /* 🆕 不再是 fixed，改成正常的 block */
+  position: relative;
   background: white;
   border-radius: 20px;
   padding: 30px;
-  box-shadow: 0, 10px, 40px rgba(0, 0, 0, 0.3);
-  width: 90%;
-  max-width: 500px;
-  max-height: 80vh;
-  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+
   /* 預設隱藏 */
   display: none;
-  z-index: 1000;
+
+  /* 動畫效果 */
+  animation: cardSlideIn 0.4s ease;
+
+  /* 最小高度 */
+  min-height: 400px;
 }
 
+/* 🆕 顯示狀態 */
 .widget-card.active {
   display: block;
-  animation: scaleIn 0.3s ease;
+}
+
+/* 🆕 卡片進場動畫 */
+@keyframes cardSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* 卡片標題列 */
@@ -198,7 +187,7 @@ h1 {
   margin-bottom: 20px;
 }
 
-.card-header h3 {
+.card-header h2 {
   margin: 0;
   font-size: 24px;
   color: #333;
@@ -224,6 +213,7 @@ h1 {
 .close-btn:hover {
   background: #e0e0e0;
   color: #333;
+  transform: rotate(90deg);
 }
 
 /* 卡片內容區 */
@@ -231,42 +221,13 @@ h1 {
   color: #666;
   line-height: 1.8;
   font-size: 16px;
-  padding: 30px;
   overflow-y: auto;
-  max-height: calc(80vh - 80px);
+  max-height: 500px;
 }
 
 .card-body p {
   margin-bottom: 15px;
   color: #666;
-}
-/* 動畫 */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes scaleIn {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
-}
-
-.overlay.active {
-  animation: fadeIn 0.3s ease;
-}
-
-.widget-card.active {
-  animation: scaleIn 0.3s ease;
 }
 
 /* ==================== 待辦清單樣式 ==================== */
@@ -443,21 +404,25 @@ h1 {
 }
 
 /* 捲軸美化 */
-.todo-list::-webkit-scrollbar {
+.todo-list::-webkit-scrollbar,
+.card-body::-webkit-scrollbar {
   width: 8px;
 }
 
-.todo-list::-webkit-scrollbar-track {
+.todo-list::-webkit-scrollbar-track,
+.card-body::-webkit-scrollbar-track {
   background: rgba(0, 0, 0, 0.05);
   border-radius: 4px;
 }
 
-.todo-list::-webkit-scrollbar-thumb {
+.todo-list::-webkit-scrollbar-thumb,
+.card-body::-webkit-scrollbar-thumb {
   background: rgba(139, 92, 246, 0.3);
   border-radius: 4px;
 }
 
-.todo-list::-webkit-scrollbar-thumb:hover {
+.todo-list::-webkit-scrollbar-thumb:hover,
+.card-body::-webkit-scrollbar-thumb:hover {
   background: rgba(139, 92, 246, 0.5);
 }
 
@@ -468,7 +433,7 @@ h1 {
   text-align: center;
   margin: 30px 0;
   font-family: "Courier New", monospace;
-  font-size: 5rem;
+  font-size: 4rem;
   font-weight: 700;
   color: #8b5cf6;
   text-shadow: 0 4px 10px rgba(139, 92, 246, 0.2);
@@ -613,4 +578,361 @@ h1 {
 
 .timer-display.break {
   color: #06b6d4;
+}
+
+/* ==================== 🆕 喝水提醒樣式 ==================== */
+
+/* 喝水顯示區 */
+.water-display {
+  text-align: center;
+  padding: 30px 0;
+}
+
+.water-icon {
+  font-size: 5rem;
+  margin-bottom: 20px;
+  animation: waterFloat 3s ease-in-out infinite;
+}
+
+@keyframes waterFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.water-amount {
+  font-size: 4rem;
+  font-weight: 700;
+  color: #06b6d4;
+  margin: 20px 0;
+}
+
+.water-goal {
+  color: #666;
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+}
+
+/* 喝水進度條 */
+.water-progress {
+  width: 100%;
+  height: 20px;
+  background: rgba(6, 182, 212, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 30px 0;
+  position: relative;
+}
+
+.water-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #06b6d4, #0891b2);
+  border-radius: 10px;
+  width: 0%;
+  transition: width 0.5s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 水波動畫 */
+.water-progress-bar::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: waterShine 2s infinite;
+}
+
+@keyframes waterShine {
+  to {
+    left: 100%;
+  }
+}
+
+/* 喝水控制按鈕 */
+.water-controls {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin: 30px 0;
+}
+
+.water-btn {
+  padding: 15px 30px;
+  font-size: 1.1rem;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #06b6d4, #0891b2);
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.water-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(6, 182, 212, 0.4);
+}
+
+.water-btn:active {
+  transform: translateY(0);
+}
+
+.water-btn.secondary {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.water-btn.secondary:hover {
+  background: #ef4444;
+  color: white;
+  box-shadow: 0 8px 16px rgba(239, 68, 68, 0.4);
+}
+
+/* 喝水提醒設定 */
+.water-settings {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.water-reminder-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px;
+  background: rgba(6, 182, 212, 0.05);
+  border-radius: 10px;
+  margin-bottom: 15px;
+}
+
+.toggle-label {
+  font-size: 1rem;
+  color: #666;
+  font-weight: 500;
+}
+
+/* 切換開關 */
+.switch {
+  position: relative;
+  width: 50px;
+  height: 26px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
+  border-radius: 34px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background: linear-gradient(135deg, #06b6d4, #0891b2);
+}
+
+input:checked + .slider:before {
+  transform: translateX(24px);
+}
+
+/* ==================== 🆕 響應式設計 ==================== */
+
+/* 平板版（768px - 1024px） */
+@media (max-width: 1024px) {
+  .workspace {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 100px 15px 120px 15px;
+  }
+
+  .timer-display {
+    font-size: 3.5rem;
+  }
+
+  .water-amount {
+    font-size: 3.5rem;
+  }
+}
+
+/* 手機版（< 768px） */
+@media (max-width: 768px) {
+  /* 導覽列 */
+  .navbar {
+    padding: 0.8rem 1rem;
+  }
+
+  .logo {
+    font-size: 1.2rem;
+  }
+
+  /* 🆕 工作區改成單欄 */
+  .workspace {
+    grid-template-columns: 1fr;
+    padding: 90px 10px 110px 10px;
+    gap: 15px;
+  }
+
+  /* 歡迎訊息 */
+  .welcome-message h1 {
+    font-size: 2rem;
+  }
+
+  .welcome-message p {
+    font-size: 1rem;
+  }
+
+  /* 卡片 */
+  .widget-card {
+    padding: 20px;
+    min-height: auto;
+  }
+
+  .card-header h2 {
+    font-size: 1.3rem;
+  }
+
+  /* 番茄鐘 */
+  .timer-display {
+    font-size: 3rem;
+  }
+
+  .timer-controls {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .control-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .timer-settings {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  /* 待辦清單 */
+  .todo-input-group {
+    flex-direction: column;
+  }
+
+  #add-todo-btn {
+    width: 100%;
+  }
+
+  /* 喝水提醒 */
+  .water-icon {
+    font-size: 4rem;
+  }
+
+  .water-amount {
+    font-size: 3rem;
+  }
+
+  .water-controls {
+    flex-direction: column;
+  }
+
+  .water-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Dock */
+  .dock {
+    bottom: 10px;
+    left: 10px;
+    right: 10px;
+    transform: none;
+    padding: 8px 10px;
+  }
+
+  .dock-container {
+    justify-content: space-around;
+  }
+
+  .dock-item {
+    padding: 8px 10px;
+  }
+
+  .dock-icon {
+    font-size: 1.5rem;
+  }
+
+  .dock-label {
+    font-size: 0.65rem;
+  }
+}
+
+/* 小手機（< 480px） */
+@media (max-width: 480px) {
+  .workspace {
+    padding: 80px 5px 100px 5px;
+  }
+
+  .welcome-message h1 {
+    font-size: 1.5rem;
+  }
+
+  .widget-card {
+    padding: 15px;
+  }
+
+  .timer-display {
+    font-size: 2.5rem;
+  }
+
+  .water-amount {
+    font-size: 2.5rem;
+  }
+
+  .dock-label {
+    display: none;
+  }
+}
+
+/* ==================== 動畫 ==================== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }

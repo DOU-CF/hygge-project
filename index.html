@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Hygge - 個人生活管理平台，整合待辦清單、番茄鐘、天氣等工具"
+      content="Hygge - 個人生活管理平台，整合待辦清單、番茄鐘、喝水提醒等工具"
     />
-    <title>Hygge - 個人生活管理平台</title>
-    <link rel="stylesheet" href="css/style.css" />
+    <title>Hygge - 個人生活管理平台（升級版）</title>
+    <link rel="stylesheet" href="hygge-upgraded-style.css" />
   </head>
   <body>
     <!-- ========== 1. 導覽列 ========== -->
@@ -26,7 +26,7 @@
       </div>
     </header>
 
-    <!-- ========== 2. 主工作區域 ========== -->
+    <!-- ========== 2. 主工作區域（並排顯示） ========== -->
     <main class="workspace" id="workspace">
       <!-- 歡迎訊息 -->
       <div class="welcome-message">
@@ -34,17 +34,11 @@
         <p>點擊下方工具開始管理你的一天</p>
       </div>
 
-      <!-- ⭐ 在這裡加入待辦清單卡片 ⭐ -->
       <!-- ========== 待辦清單卡片 ========== -->
-      <div
-        class="widget-card"
-        id="todo-widget"
-        data-widget="todo"
-        style="display: none"
-      >
+      <div class="widget-card" id="todo-widget" data-widget="todo">
         <div class="card-header">
           <h2>📝 待辦清單</h2>
-          <button class="close-btn" data-close="todo">x</button>
+          <button class="close-btn" data-close="todo">✕</button>
         </div>
 
         <div class="card-body">
@@ -60,9 +54,7 @@
           </div>
 
           <!-- 待辦清單容器 -->
-          <ul id="todo-list" class="todo-list">
-            <!-- 待辦項目會動態加入這裡 -->
-          </ul>
+          <ul id="todo-list" class="todo-list"></ul>
 
           <!-- 空狀態提示 -->
           <div id="todo-empty" class="empty-state">
@@ -76,18 +68,12 @@
           <button id="clear-completed-btn">清除已完成</button>
         </div>
       </div>
-      <!-- ========== 待辦清單卡片結束 ========== -->
 
       <!-- ========== 番茄鐘卡片 ========== -->
-      <div
-        class="widget-card"
-        id="pomodoro-widget"
-        data-widget="pomodoro"
-        style="display: none"
-      >
+      <div class="widget-card" id="pomodoro-widget" data-widget="pomodoro">
         <div class="card-header">
           <h2>🍅 番茄鐘</h2>
-          <button class="close-btn" data-close="pomodoro">x</button>
+          <button class="close-btn" data-close="pomodoro">✕</button>
         </div>
 
         <div class="card-body">
@@ -143,8 +129,60 @@
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- ========== 番茄鐘卡片結束 ========== -->
+      <!-- ========== 🆕 喝水提醒卡片 ========== -->
+      <div class="widget-card" id="water-widget" data-widget="water">
+        <div class="card-header">
+          <h2>💧 喝水提醒</h2>
+          <button class="close-btn" data-close="water">✕</button>
+        </div>
+
+        <div class="card-body">
+          <!-- 喝水顯示區 -->
+          <div class="water-display">
+            <div class="water-icon">💧</div>
+            <div class="water-amount" id="water-amount">0</div>
+            <p class="water-goal" id="water-goal">目標：8 杯 / 2000ml</p>
+          </div>
+
+          <!-- 進度條 -->
+          <div class="water-progress">
+            <div class="water-progress-bar" id="water-progress-bar"></div>
+          </div>
+
+          <!-- 控制按鈕 -->
+          <div class="water-controls">
+            <button id="add-water-btn" class="water-btn">
+              <span>💧</span> 喝一杯
+            </button>
+            <button id="reset-water-btn" class="water-btn secondary">
+              <span>↻</span> 重置
+            </button>
+          </div>
+
+          <!-- 提醒設定 -->
+          <div class="water-settings">
+            <div class="water-reminder-toggle">
+              <span class="toggle-label">⏰ 定時提醒</span>
+              <label class="switch">
+                <input type="checkbox" id="reminder-toggle" checked />
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="setting-item">
+              <label>提醒間隔（分鐘）</label>
+              <input
+                type="number"
+                id="reminder-time"
+                value="60"
+                min="15"
+                max="180"
+              />
+            </div>
+          </div>
+        </div>
       </div>
     </main>
 
@@ -163,19 +201,19 @@
           <span class="dock-label">番茄鐘</span>
         </div>
 
-        <!-- 喝水提醒 -->
+        <!-- 🆕 喝水提醒 -->
         <div class="dock-item" data-widget="water">
           <span class="dock-icon">💧</span>
           <span class="dock-label">喝水提醒</span>
         </div>
 
-        <!-- 天氣 -->
+        <!-- 天氣（開發中） -->
         <div class="dock-item" data-widget="weather">
           <span class="dock-icon">🌤️</span>
           <span class="dock-label">天氣</span>
         </div>
 
-        <!-- 筆記 -->
+        <!-- 筆記（開發中） -->
         <div class="dock-item" data-widget="note">
           <span class="dock-icon">📒</span>
           <span class="dock-label">筆記</span>
@@ -183,25 +221,6 @@
       </div>
     </div>
 
-    <!-- ========== 4. 小工具容器（之後會用到） ========== -->
-    <div class="widgets-container" id="widgets-container">
-      <!-- 小工具視窗會動態插入這裡 -->
-    </div>
-
-    <script src="js/app.js"></script>
-
-    <!-- ⚠️ 注意：下面這兩個可以刪掉了，因為我們用新的結構：我們現在用**專屬的待辦清單卡片** (`#todo-widget`)，不用通用的 `#widgetCard` 了。 -->
-    <!-- 遮罩層 -->
-    <!-- <div class="overlay" id="overlay"></div> -->
-    <!-- 卡片視窗 -->
-    <!-- <div class="widget-card" id="widgetCard"> -->
-    <div class="card-header">
-      <h3 id="cardTitle">標題</h3>
-      <button class="close-btn" id="closeBtn">x</button>
-    </div>
-    <div class="card-body" id="cardBody">
-      <!-- 內容會由 JavaScript 動態填入 -->
-    </div>
-    <!-- </div>   -->
+    <script src="hygge-upgraded-app.js"></script>
   </body>
 </html>
