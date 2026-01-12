@@ -9,6 +9,8 @@ let pomodoroTimer = null;
 let waterReminder = null;
 let noteManager = null;
 let weatherManager = null;
+let weeklyPlanner = null;
+let ganttChart = null;
 
 // ==================== 卡片管理系統 ====================
 class WidgetManager {
@@ -139,10 +141,17 @@ class WidgetManager {
         }
         break;
 
-      case "weather": // 👈 加入這整段
+      case "weather":
         if (!weatherManager) {
           weatherManager = new WeatherManager();
         }
+        break;
+
+      case "weekly":
+        if (!weeklyPlanner) weeklyPlanner = new WeeklyPlanner();
+        break;
+      case "gantt":
+        if (!ganttChart) ganttChart = new GanttChart();
         break;
     }
   }
@@ -1210,40 +1219,370 @@ let todos = [];
 
 console.log("✅ 所有功能已載入！");
 
-// 測試用資料
-todos = [
-  {
-    id: "todo-001",
-    title: "完成周計劃 UI",
-    completed: false,
-    weekDay: "mon",
-    project: "Hygge",
-    progress: 40,
-    startDate: "2026-01-10",
-    endDate: "2026-01-15",
-  },
-  {
-    id: "todo-002",
-    title: "甘特圖設計",
-    completed: false,
-    weekDay: "wed",
-    project: "Hygge",
-    progress: 70,
-    startDate: "2026-01-12",
-    endDate: "2026-01-18",
-  },
-];
+// ==================== 📅 周計劃功能 ====================
+class WeeklyPlanner {
+  constructor() {
+    console.log("🗓 WeeklyPlanner 初始化中...");
+    this.init();
+  }
 
-// 周計劃渲染（先 stub）
-function renderWeekly() {
-  console.log("render weekly", todos);
+  init() {
+    this.cacheDom();
+    this.bindEvents();
+    this.render();
+    console.log("✅ WeeklyPlanner 初始化完成！");
+  }
+
+  cacheDom() {
+    this.weekGrid = document.querySelector(".week-grid");
+    this.dayColumns = document.querySelectorAll(".day-column");
+  }
+
+  bindEvents() {
+    // 暫時保留，之後會加入拖曳功能
+  }
+
+  // 取得指定星期的待辦事項
+  getTodosByDay(day) {
+    return todos.filter((todo) => todo.weekDay === day && !todo.completed);
+  }
+
+  // 渲染整個周計劃
+  render() {
+    if (!this.weekGrid) return;
+
+    this.dayColumns.forEach((column) => {
+      const day = column.dataset.day;
+      const taskList = column.querySelector(".day-task-list");
+
+      if (taskList) {
+        taskList.innerHTML = "";
+        const dayTodos = this.getTodosByDay(day);
+
+        dayTodos.forEach((todo) => {
+          const taskElement = this.createTaskElement(todo);
+          taskList.appendChild(taskElement);
+        });
+
+        // 顯示任務數量
+        column.querySelector("h3").textContent = `${this.getDayName(day)} (${
+          dayTodos.length
+        })`;
+      }
+    });
+
+    console.log("✅ 周計劃已更新");
+  }
+
+  // 創建任務元素
+  createTaskElement(todo) {
+    const li = document.createElement("li");
+    li.className = "week-task-item";
+    li.dataset.todoId = todo.id;
+
+    // 根據專案給予不同顏色
+    const projectColor = this.getProjectColor(todo.project);
+
+    li.innerHTML = `
+      <div class="task-header" style="border-left: 4px solid ${projectColor}">
+        <span class="task-title">${this.escapeHtml(todo.title)}</span>
+        <button class="task-complete-btn" data-id="${todo.id}">✓</button>
+      </div>
+      ${todo.project ? `<div class="task-project">${todo.project}</div>` : ""}
+    `;
+
+    // 綁定完成按鈕
+    const completeBtn = li.querySelector(".task-complete-btn");
+    completeBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      this.completeTodo(todo.id);
+    });
+
+    return li;
+  }
+
+  // 完成待辦事項
+  completeTodo(id) {
+    const todo = todos.find((t) => t.id === id);
+    if (todo) {
+      todo.completed = true;
+
+      // 同步更新所有視圖
+      if (todoApp) todoApp.saveTodos();
+      this.render();
+      if (ganttChart) ganttChart.render();
+
+      console.log(`✅ 完成任務: ${todo.title}`);
+    }
+  }
+
+  // 取得星期中文名稱
+  getDayName(day) {
+    const names = {
+      mon: "一",
+      tue: "二",
+      wed: "三",
+      thu: "四",
+      fri: "五",
+      sat: "六",
+      sun: "日",
+    };
+    return names[day] || day;
+  }
+
+  // 取得專案顏色
+  getProjectColor(project) {
+    const colors = {
+      Hygge: "#8b5cf6",
+      作品集: "#06b6d4",
+      學習: "#10b981",
+      運動: "#f59e0b",
+      生活: "#ef4444",
+    };
+    return colors[project] || "#999";
+  }
+
+  escapeHtml(text) {
+    const div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
+  }
 }
 
-// 甘特圖渲染（先 stub）
-function renderGantt() {
-  console.log("render gantt", todos);
+// ==================== 📊 甘特圖功能 ====================
+class GanttChart {
+  constructor() {
+    console.log("📊 GanttChart 初始化中...");
+    this.init();
+  }
+
+  init() {
+    this.cacheDom();
+    this.bindEvents();
+    this.render();
+    console.log("✅ GanttChart 初始化完成！");
+  }
+
+  cacheDom() {
+    this.ganttList = document.querySelector("#gantt-list");
+    this.emptyState = document.querySelector(".gantt-empty");
+  }
+
+  bindEvents() {
+    // 暫時保留
+  }
+
+  // 取得有專案的待辦事項
+  getProjectTodos() {
+    return todos.filter((todo) => todo.project && !todo.completed);
+  }
+
+  // 按專案分組
+  groupByProject() {
+    const projects = {};
+
+    this.getProjectTodos().forEach((todo) => {
+      if (!projects[todo.project]) {
+        projects[todo.project] = [];
+      }
+      projects[todo.project].push(todo);
+    });
+
+    return projects;
+  }
+
+  // 計算專案平均進度
+  calculateProjectProgress(todos) {
+    if (todos.length === 0) return 0;
+    const total = todos.reduce((sum, todo) => sum + (todo.progress || 0), 0);
+    return Math.round(total / todos.length);
+  }
+
+  // 渲染甘特圖
+  render() {
+    if (!this.ganttList) return;
+
+    const projects = this.groupByProject();
+    const projectKeys = Object.keys(projects);
+
+    if (projectKeys.length === 0) {
+      this.ganttList.style.display = "none";
+      this.emptyState.style.display = "block";
+      return;
+    }
+
+    this.ganttList.style.display = "flex";
+    this.emptyState.style.display = "none";
+    this.ganttList.innerHTML = "";
+
+    projectKeys.forEach((projectName) => {
+      const projectTodos = projects[projectName];
+      const avgProgress = this.calculateProjectProgress(projectTodos);
+
+      const ganttItem = this.createGanttItem(
+        projectName,
+        avgProgress,
+        projectTodos
+      );
+      this.ganttList.appendChild(ganttItem);
+    });
+
+    console.log("✅ 甘特圖已更新");
+  }
+
+  // 創建甘特圖項目
+  createGanttItem(projectName, progress, todos) {
+    const div = document.createElement("div");
+    div.className = "gantt-item";
+
+    const projectColor = this.getProjectColor(projectName);
+
+    div.innerHTML = `
+      <div class="gantt-title">
+        <span class="project-name">${projectName}</span>
+        <span class="task-count">${todos.length} 項</span>
+      </div>
+      <div class="gantt-bar">
+        <div class="gantt-progress" style="width: ${progress}%; background: ${projectColor}">
+          <span class="progress-text">${progress}%</span>
+        </div>
+      </div>
+      <div class="gantt-actions">
+        <button class="gantt-view-btn" data-project="${projectName}">查看任務</button>
+      </div>
+    `;
+
+    // 綁定查看按鈕
+    const viewBtn = div.querySelector(".gantt-view-btn");
+    viewBtn.addEventListener("click", () => {
+      this.showProjectTasks(projectName, todos);
+    });
+
+    return div;
+  }
+
+  // 顯示專案任務列表
+  showProjectTasks(projectName, todos) {
+    const taskList = todos
+      .map((todo) => `• ${todo.title} (${todo.progress || 0}%)`)
+      .join("\n");
+
+    alert(`📊 ${projectName} 任務清單：\n\n${taskList}`);
+  }
+
+  // 取得專案顏色
+  getProjectColor(project) {
+    const colors = {
+      Hygge: "#8b5cf6",
+      作品集: "#06b6d4",
+      學習: "#10b981",
+      運動: "#f59e0b",
+      生活: "#ef4444",
+    };
+    return colors[project] || "#999";
+  }
 }
 
-// 初始化
-renderWeekly();
-renderGantt();
+// ==================== 🔗 待辦清單增強版 ====================
+// 擴展原有的 TodoApp 類別
+
+// 儲存原始的 addTodo 方法
+const originalAddTodo = TodoApp.prototype.addTodo;
+
+// 覆寫 addTodo 方法，加入對話框
+TodoApp.prototype.addTodo = function () {
+  const text = this.todoInput.value.trim();
+
+  if (!text) {
+    alert("請輸入待辦事項！");
+    return;
+  }
+
+  // 詢問是否要加入周計劃或專案
+  const action = confirm(
+    "是否要將此任務加入周計劃或專案？\n\n" +
+      "按「確定」開啟設定\n" +
+      "按「取消」只建立一般待辦"
+  );
+
+  if (action) {
+    this.showTaskSettings(text);
+  } else {
+    // 使用原始方法建立一般待辦
+    originalAddTodo.call(this);
+  }
+};
+
+// 新增任務設定對話框
+TodoApp.prototype.showTaskSettings = function (text) {
+  const weekDay = prompt(
+    "📅 分配到星期幾？\n\n" +
+      "輸入: mon, tue, wed, thu, fri, sat, sun\n" +
+      "(留空 = 不加入周計劃)"
+  );
+
+  const project = prompt(
+    "📊 專案名稱？\n\n" +
+      "建議: Hygge, 作品集, 學習, 運動, 生活\n" +
+      "(留空 = 不加入專案)"
+  );
+
+  let progress = 0;
+  if (project) {
+    const progressInput = prompt("進度 (0-100):", "0");
+    progress = Math.max(0, Math.min(100, parseInt(progressInput) || 0));
+  }
+
+  // 建立增強版待辦事項
+  const newTodo = {
+    id: "todo-" + Date.now(),
+    text: text,
+    completed: false,
+    createdAt: new Date().toLocaleDateString("zh-TW"),
+    weekDay: weekDay || null,
+    project: project || null,
+    progress: progress,
+    startDate: new Date().toISOString().split("T")[0],
+    endDate: null,
+  };
+
+  this.todos.push(newTodo);
+  this.saveTodos();
+  this.render();
+
+  this.todoInput.value = "";
+  this.todoInput.focus();
+
+  // 同步更新周計劃和甘特圖
+  if (weeklyPlanner) weeklyPlanner.render();
+  if (ganttChart) ganttChart.render();
+
+  console.log("✅ 新增增強版待辦:", newTodo);
+};
+
+// 擴展 saveTodos 方法
+const originalSaveTodos = TodoApp.prototype.saveTodos;
+TodoApp.prototype.saveTodos = function () {
+  // 同步到全域 todos
+  todos = this.todos;
+
+  // 呼叫原始儲存方法
+  originalSaveTodos.call(this);
+
+  // 更新其他視圖
+  if (weeklyPlanner) weeklyPlanner.render();
+  if (ganttChart) ganttChart.render();
+};
+
+// 擴展 loadTodos 方法
+const originalLoadTodos = TodoApp.prototype.loadTodos;
+TodoApp.prototype.loadTodos = function () {
+  const loaded = originalLoadTodos.call(this);
+
+  // 同步到全域 todos
+  todos = loaded;
+
+  return loaded;
+};
+
+console.log("✅ 周計劃和甘特圖功能已載入！");
