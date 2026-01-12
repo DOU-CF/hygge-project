@@ -511,13 +511,17 @@ class PomodoroTimer {
 }
 
 // ==================== 🆕 Day 7: 喝水提醒功能 ====================
+// ==================== 🆕 優化版喝水提醒功能 ====================
 class WaterReminder {
   constructor() {
-    console.log("💧 WaterReminder 初始化中...");
+    console.log("💧 WaterReminder 優化版初始化中...");
 
-    // 喝水記錄
-    this.waterCount = this.loadWaterCount();
-    this.waterGoal = 8; // 目標 8 杯
+    // 🆕 新增的屬性
+    this.cupSize = this.loadCupSize() || 250; // 預設 250ml
+    this.waterGoal = this.loadWaterGoal() || 2000; // 預設 2000ml
+    this.waterAmount = this.loadWaterAmount(); // 已喝水量（毫升）
+
+    // 原有屬性
     this.reminderInterval = null;
     this.reminderEnabled = true;
     this.reminderTime = 60; // 預設 60 分鐘提醒一次
@@ -530,17 +534,30 @@ class WaterReminder {
     this.bindEvents();
     this.render();
     this.startReminder();
-    console.log("✅ WaterReminder 初始化完成！");
+    console.log("✅ WaterReminder 優化版初始化完成！");
   }
 
   cacheDom() {
-    this.waterAmount = document.querySelector("#water-amount");
-    this.waterGoalText = document.querySelector("#water-goal");
+    // 顯示元素
+    this.waterAmountML = document.querySelector("#water-amount-ml");
+    this.waterGoalML = document.querySelector("#water-goal-ml");
+    this.waterPercentage = document.querySelector("#water-percentage");
     this.progressBar = document.querySelector("#water-progress-bar");
+    this.progressText = document.querySelector("#progress-text");
+
+    // 控制按鈕
     this.addBtn = document.querySelector("#add-water-btn");
     this.resetBtn = document.querySelector("#reset-water-btn");
+    this.currentCupSizeSpan = document.querySelector("#current-cup-size");
+
+    // 設定元素
     this.reminderToggle = document.querySelector("#reminder-toggle");
     this.reminderTimeInput = document.querySelector("#reminder-time");
+    this.waterGoalInput = document.querySelector("#water-goal-input");
+
+    // 🆕 水杯容量按鈕
+    this.cupSizeOptions = document.querySelector("#cup-size-options");
+    this.cupButtons = document.querySelectorAll(".cup-btn");
   }
 
   bindEvents() {
@@ -549,9 +566,34 @@ class WaterReminder {
       return;
     }
 
+    // 喝水按鈕
     this.addBtn.addEventListener("click", () => this.addWater());
+
+    // 重置按鈕
     this.resetBtn.addEventListener("click", () => this.resetWater());
 
+    // 🆕 水杯容量選擇
+    if (this.cupSizeOptions) {
+      this.cupButtons.forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          const size = parseInt(e.currentTarget.dataset.size);
+          this.changeCupSize(size);
+        });
+      });
+    }
+
+    // 🆕 目標設定
+    if (this.waterGoalInput) {
+      this.waterGoalInput.addEventListener("change", (e) => {
+        const newGoal = parseInt(e.target.value) || 2000;
+        this.waterGoal = Math.max(500, Math.min(5000, newGoal));
+        this.saveWaterGoal();
+        this.render();
+        console.log(`🎯 目標已更新為：${this.waterGoal}ml`);
+      });
+    }
+
+    // 提醒開關
     if (this.reminderToggle) {
       this.reminderToggle.addEventListener("change", (e) => {
         this.reminderEnabled = e.target.checked;
@@ -563,61 +605,139 @@ class WaterReminder {
       });
     }
 
+    // 提醒間隔
     if (this.reminderTimeInput) {
       this.reminderTimeInput.addEventListener("change", (e) => {
         this.reminderTime = parseInt(e.target.value) || 60;
-        this.startReminder(); // 重新啟動提醒
+        this.startReminder();
       });
     }
   }
 
-  addWater() {
-    this.waterCount++;
-    this.saveWaterCount();
-    this.render();
+  // 🆕 更換水杯容量
+  changeCupSize(size) {
+    this.cupSize = size;
+    this.saveCupSize();
 
-    // 達成目標時的提示
-    if (this.waterCount === this.waterGoal) {
-      alert("🎉 太棒了！你已經完成今天的喝水目標！");
+    // 更新按鈕狀態
+    this.cupButtons.forEach((btn) => {
+      if (parseInt(btn.dataset.size) === size) {
+        btn.classList.add("active");
+      } else {
+        btn.classList.remove("active");
+      }
+    });
+
+    // 更新顯示
+    if (this.currentCupSizeSpan) {
+      this.currentCupSizeSpan.textContent = `(${size}ml)`;
     }
 
-    console.log(`💧 喝水 +1，目前：${this.waterCount} 杯`);
+    console.log(`🥤 水杯容量已更換為：${size}ml`);
   }
 
+  // 🆕 喝水（以毫升計算）
+  addWater() {
+    this.waterAmount += this.cupSize;
+    this.saveWaterAmount();
+    this.render();
+
+    // 達成目標時的慶祝效果
+    if (
+      this.waterAmount >= this.waterGoal &&
+      this.waterAmount - this.cupSize < this.waterGoal
+    ) {
+      this.showGoalAchieved();
+    }
+
+    console.log(`💧 喝水 +${this.cupSize}ml，目前：${this.waterAmount}ml`);
+  }
+
+  // 🆕 達成目標動畫
+  showGoalAchieved() {
+    alert("🎉 太棒了！你已經完成今天的喝水目標！");
+
+    // 添加動畫效果
+    if (this.waterPercentage) {
+      this.waterPercentage.classList.add("goal-achieved");
+      setTimeout(() => {
+        this.waterPercentage.classList.remove("goal-achieved");
+      }, 600);
+    }
+
+    if (this.progressBar) {
+      this.progressBar.classList.add("goal-achieved");
+    }
+  }
+
+  // 重置喝水記錄
   resetWater() {
-    if (confirm("確定要重置喝水記錄嗎？")) {
-      this.waterCount = 0;
-      this.saveWaterCount();
+    if (confirm("確定要重置今日喝水記錄嗎？")) {
+      this.waterAmount = 0;
+      this.saveWaterAmount();
       this.render();
       console.log("↻ 喝水記錄已重置");
     }
   }
 
+  // 🆕 渲染畫面（優化版）
   render() {
-    if (!this.waterAmount || !this.progressBar) return;
+    // 更新已喝水量
+    if (this.waterAmountML) {
+      this.waterAmountML.textContent = `${this.waterAmount} ml`;
+    }
 
-    // 更新數字顯示
-    this.waterAmount.textContent = this.waterCount;
+    // 更新目標
+    if (this.waterGoalML) {
+      this.waterGoalML.textContent = `${this.waterGoal} ml`;
+    }
+
+    // 更新百分比
+    const percentage = Math.min(
+      Math.round((this.waterAmount / this.waterGoal) * 100),
+      100
+    );
+    if (this.waterPercentage) {
+      this.waterPercentage.textContent = `${percentage}%`;
+    }
 
     // 更新進度條
-    const progress = Math.min((this.waterCount / this.waterGoal) * 100, 100);
-    this.progressBar.style.width = `${progress}%`;
+    if (this.progressBar) {
+      this.progressBar.style.width = `${percentage}%`;
 
-    // 更新目標顯示
-    if (this.waterGoalText) {
-      this.waterGoalText.textContent = `目標：${this.waterGoal} 杯 / 2000ml`;
+      // 更新進度條內的文字
+      if (this.progressText) {
+        this.progressText.textContent = `${this.waterAmount} ml`;
+      }
+    }
+
+    // 更新目標輸入框
+    if (this.waterGoalInput) {
+      this.waterGoalInput.value = this.waterGoal;
+    }
+
+    // 更新水杯容量按鈕狀態
+    this.cupButtons.forEach((btn) => {
+      if (parseInt(btn.dataset.size) === this.cupSize) {
+        btn.classList.add("active");
+      } else {
+        btn.classList.remove("active");
+      }
+    });
+
+    // 更新按鈕顯示
+    if (this.currentCupSizeSpan) {
+      this.currentCupSizeSpan.textContent = `(${this.cupSize}ml)`;
     }
   }
 
   // 開始提醒
   startReminder() {
-    // 先停止現有的提醒
     this.stopReminder();
 
     if (!this.reminderEnabled) return;
 
-    // 設定新的提醒
-    const intervalMs = this.reminderTime * 60 * 1000; // 轉換成毫秒
+    const intervalMs = this.reminderTime * 60 * 1000;
 
     this.reminderInterval = setInterval(() => {
       this.showReminder();
@@ -637,34 +757,61 @@ class WaterReminder {
 
   // 顯示提醒
   showReminder() {
-    if (this.waterCount < this.waterGoal) {
-      alert("💧 該喝水囉！補充水分保持健康！");
+    if (this.waterAmount < this.waterGoal) {
+      const remaining = this.waterGoal - this.waterAmount;
+      alert(`💧 該喝水囉！\n\n還差 ${remaining}ml 就達成今日目標了！`);
       console.log("💧 顯示喝水提醒");
     }
   }
 
-  // 儲存到 localStorage
-  saveWaterCount() {
-    localStorage.setItem("hygge-water-count", this.waterCount.toString());
+  // ==================== 🆕 LocalStorage 操作 ====================
+
+  // 儲存水杯容量
+  saveCupSize() {
+    localStorage.setItem("hygge-cup-size", this.cupSize.toString());
+  }
+
+  // 載入水杯容量
+  loadCupSize() {
+    const saved = localStorage.getItem("hygge-cup-size");
+    return saved ? parseInt(saved) : null;
+  }
+
+  // 儲存喝水目標
+  saveWaterGoal() {
+    localStorage.setItem("hygge-water-goal", this.waterGoal.toString());
+  }
+
+  // 載入喝水目標
+  loadWaterGoal() {
+    const saved = localStorage.getItem("hygge-water-goal");
+    return saved ? parseInt(saved) : null;
+  }
+
+  // 儲存已喝水量
+  saveWaterAmount() {
+    localStorage.setItem("hygge-water-amount", this.waterAmount.toString());
     localStorage.setItem("hygge-water-date", new Date().toDateString());
   }
 
-  // 從 localStorage 載入
-  loadWaterCount() {
+  // 載入已喝水量
+  loadWaterAmount() {
     const savedDate = localStorage.getItem("hygge-water-date");
     const today = new Date().toDateString();
 
     // 如果是新的一天，重置計數
     if (savedDate !== today) {
-      localStorage.setItem("hygge-water-count", "0");
+      localStorage.setItem("hygge-water-amount", "0");
       localStorage.setItem("hygge-water-date", today);
       return 0;
     }
 
-    const saved = localStorage.getItem("hygge-water-count");
+    const saved = localStorage.getItem("hygge-water-amount");
     return saved ? parseInt(saved) : 0;
   }
 }
+
+console.log("✅ WaterReminder 優化版已載入！");
 
 // ==================== 程式啟動 ====================
 document.addEventListener("DOMContentLoaded", () => {

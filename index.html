@@ -132,6 +132,7 @@
       </div>
 
       <!-- ========== 🆕 喝水提醒卡片 ========== -->
+      <!-- ========== 🆕 喝水提醒卡片（優化版） ========== -->
       <div class="widget-card" id="water-widget" data-widget="water">
         <div class="card-header">
           <h2>💧 喝水提醒</h2>
@@ -142,45 +143,111 @@
           <!-- 喝水顯示區 -->
           <div class="water-display">
             <div class="water-icon">💧</div>
-            <div class="water-amount" id="water-amount">0</div>
-            <p class="water-goal" id="water-goal">目標：8 杯 / 2000ml</p>
+
+            <!-- 已喝水量顯示 -->
+            <div class="water-stats">
+              <div class="stat-item">
+                <span class="stat-label">今日已喝</span>
+                <span class="stat-value" id="water-amount-ml">0 ml</span>
+              </div>
+              <div class="stat-divider">/</div>
+              <div class="stat-item">
+                <span class="stat-label">目標</span>
+                <span class="stat-value" id="water-goal-ml">2000 ml</span>
+              </div>
+            </div>
+
+            <!-- 完成百分比 -->
+            <div class="water-percentage" id="water-percentage">0%</div>
           </div>
 
           <!-- 進度條 -->
           <div class="water-progress">
-            <div class="water-progress-bar" id="water-progress-bar"></div>
+            <div class="water-progress-bar" id="water-progress-bar">
+              <span class="progress-text" id="progress-text">0 ml</span>
+            </div>
+          </div>
+
+          <!-- 🆕 水杯容量選擇 -->
+          <div class="cup-size-section">
+            <label class="section-label">選擇水杯容量</label>
+            <div class="cup-size-options" id="cup-size-options">
+              <button class="cup-btn" data-size="150">
+                <span class="cup-icon">🥛</span>
+                <span class="cup-label">150ml</span>
+              </button>
+              <button class="cup-btn active" data-size="250">
+                <span class="cup-icon">☕</span>
+                <span class="cup-label">250ml</span>
+              </button>
+              <button class="cup-btn" data-size="350">
+                <span class="cup-icon">🍵</span>
+                <span class="cup-label">350ml</span>
+              </button>
+              <button class="cup-btn" data-size="500">
+                <span class="cup-icon">🥤</span>
+                <span class="cup-label">500ml</span>
+              </button>
+            </div>
           </div>
 
           <!-- 控制按鈕 -->
           <div class="water-controls">
             <button id="add-water-btn" class="water-btn">
-              <span>💧</span> 喝一杯
+              <span>💧</span> 喝一杯 <span id="current-cup-size">(250ml)</span>
             </button>
             <button id="reset-water-btn" class="water-btn secondary">
-              <span>↻</span> 重置
+              <span>↻</span> 重置今日
             </button>
           </div>
 
           <!-- 提醒設定 -->
           <div class="water-settings">
-            <div class="water-reminder-toggle">
-              <span class="toggle-label">⏰ 定時提醒</span>
-              <label class="switch">
-                <input type="checkbox" id="reminder-toggle" checked />
-                <span class="slider"></span>
+            <!-- 每日目標設定 -->
+            <div class="setting-item">
+              <label>
+                <span class="setting-icon">🎯</span> 每日目標（毫升）
               </label>
+              <input
+                type="number"
+                id="water-goal-input"
+                value="2000"
+                min="500"
+                max="5000"
+                step="100"
+              />
             </div>
 
+            <!-- 提醒間隔 -->
             <div class="setting-item">
-              <label>提醒間隔（分鐘）</label>
+              <label>
+                <span class="setting-icon">⏰</span> 提醒間隔（分鐘）
+              </label>
               <input
                 type="number"
                 id="reminder-time"
                 value="60"
                 min="15"
                 max="180"
+                step="15"
               />
             </div>
+
+            <!-- 提醒開關 -->
+            <div class="water-reminder-toggle">
+              <span class="toggle-label">
+                <span class="setting-icon">🔔</span> 定時提醒
+              </span>
+              <label class="switch">
+                <input type="checkbox" id="reminder-toggle" checked />
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 快速提示 -->
+          <div class="water-tips" id="water-tips">
+            <p class="tip-text">💡 建議每日飲水量：2000-2500ml</p>
           </div>
         </div>
       </div>
