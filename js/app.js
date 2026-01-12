@@ -1204,4 +1204,46 @@ class WeatherManager {
   }
 }
 
+// ========== 先建立資料容器 (「宣告空陣列」)==========
+
+let todos = [];
+
 console.log("✅ 所有功能已載入！");
+
+// 測試用資料
+todos = [
+  {
+    id: "todo-001",
+    title: "完成周計劃 UI",
+    completed: false,
+    weekDay: "mon",
+    project: "Hygge",
+    progress: 40,
+    startDate: "2026-01-10",
+    endDate: "2026-01-15",
+  },
+  {
+    id: "todo-002",
+    title: "甘特圖設計",
+    completed: false,
+    weekDay: "wed",
+    project: "Hygge",
+    progress: 70,
+    startDate: "2026-01-12",
+    endDate: "2026-01-18",
+  },
+];
+
+// 周計劃渲染（先 stub）
+function renderWeekly() {
+  console.log("render weekly", todos);
+}
+
+// 甘特圖渲染（先 stub）
+function renderGantt() {
+  console.log("render gantt", todos);
+}
+
+// 初始化
+renderWeekly();
+renderGantt();

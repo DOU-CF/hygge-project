@@ -2245,3 +2245,73 @@ input:checked + .slider:before {
     font-size: 2.5rem;
   }
 }
+
+/* ====================（重要）Weekly Planner  周計劃整體 Grid
+ ==================== */
+
+.weekly-body {
+  padding: 16px;
+}
+
+.week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 12px;
+}
+/* 每天的任務區（現在是空的，先佔位） */
+.day-task-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex: 1;
+}
+
+/* =========================
+  甘特圖容器 Gantt Chart (Simple)
+========================= */
+
+.gantt-body {
+  padding: 16px;
+}
+
+.gantt-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 12px;
+}
+/* 每一條專案 */
+.gantt-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.gantt-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+/* 單一專案列（最關鍵） */
+.gantt-title {
+  width: 80px;
+  font-size: 13px;
+  color: #333;
+}
+
+/* 進度條外框 */
+.gantt-bar {
+  flex: 1;
+  height: 12px;
+  background: #eee;
+  border-radius: 6px;
+  overflow: hidden;
+}
+/* 進度條本體 */
+.gantt-progress {
+  height: 100%;
+  background: linear-gradient(90deg, #6c63ff, #8f88ff);
+  width: 0%; /* 之後 JS 控制 */
+  transition: width 0.3s ease;
+}

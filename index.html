@@ -367,6 +367,85 @@
           </div>
         </div>
       </div>
+
+      <!-- ========== 🗓 周計劃卡片 ========== -->
+      <div class="widget-card" id="weekly-widget" data-widget="weekly">
+        <div class="card-header">
+          <h2>🗓 周計劃</h2>
+          <button class="close-btn" data-close="weekly">✕</button>
+        </div>
+
+        <div class="card-body weekly-body">
+          <div class="week-grid">
+            <div class="day-column" data-day="mon">
+              <h3>一</h3>
+              <ul class="day-task-list"></ul>
+            </div>
+            <div class="day-column" data-day="tue">
+              <h3>二</h3>
+              <ul class="day-task-list"></ul>
+            </div>
+            <div class="day-column" data-day="wed">
+              <h3>三</h3>
+              <ul class="day-task-list"></ul>
+            </div>
+            <div class="day-column" data-day="thu">
+              <h3>四</h3>
+              <ul class="day-task-list"></ul>
+            </div>
+            <div class="day-column" data-day="fri">
+              <h3>五</h3>
+              <ul class="day-task-list"></ul>
+            </div>
+            <div class="day-column" data-day="sat">
+              <h3>六</h3>
+              <ul class="day-task-list"></ul>
+            </div>
+            <div class="day-column" data-day="sun">
+              <h3>日</h3>
+              <ul class="day-task-list"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== 📊 甘特圖卡片 ========== -->
+      <div class="widget-card" id="gantt-widget" data-widget="gantt">
+        <div class="card-header">
+          <h2>📊 專案進度（甘特圖）</h2>
+          <button class="close-btn" data-close="gantt">✕</button>
+        </div>
+
+        <div class="card-body gantt-body">
+          <div class="gantt-header">
+            <span>專案</span>
+            <span>進度</span>
+          </div>
+
+          <div id="gantt-list" class="gantt-list">
+            <!-- 甘特條由 JS 產生 -->
+            <!-- 測試用範例 -->
+            <div class="gantt-item">
+              <div class="gantt-title">Hygge</div>
+              <div class="gantt-bar">
+                <div class="gantt-progress" style="width: 40%"></div>
+              </div>
+            </div>
+
+            <div class="gantt-item">
+              <div class="gantt-title">作品集</div>
+              <div class="gantt-bar">
+                <div class="gantt-progress" style="width: 70%"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="gantt-empty empty-state">
+            <p>📌 尚未有專案任務</p>
+            <p class="empty-hint">可從待辦事項加入專案</p>
+          </div>
+        </div>
+      </div>
     </main>
 
     <!-- ========== 3. Dock 工具列 ========== -->
@@ -400,6 +479,17 @@
         <div class="dock-item" data-widget="note">
           <span class="dock-icon">📒</span>
           <span class="dock-label">筆記</span>
+        </div>
+        <!-- 周計劃（開發中） -->
+        <div class="dock-item" data-widget="weekly">
+          <span class="dock-icon">🗓</span>
+          <span class="dock-label">周計劃</span>
+        </div>
+
+        <!-- 甘特圖（開發中） -->
+        <div class="dock-item" data-widget="gantt">
+          <span class="dock-icon">📊</span>
+          <span class="dock-label">甘特圖</span>
         </div>
       </div>
     </div>
