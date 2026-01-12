@@ -228,6 +228,78 @@
           </div>
         </div>
       </div>
+
+      <!-- ========== 🌤️ 天氣卡片 ========== -->
+      <div class="widget-card" id="weather-widget" data-widget="weather">
+        <div class="card-header">
+          <h2>🌤️ 天氣</h2>
+          <button class="close-btn" data-close="weather">✕</button>
+        </div>
+
+        <div class="card-body">
+          <!-- 天氣顯示區 -->
+          <div class="weather-display">
+            <!-- 天氣圖示 -->
+            <div class="weather-icon" id="weather-icon">☀️</div>
+
+            <!-- 天氣描述 -->
+            <div class="weather-description" id="weather-description">
+              載入中...
+            </div>
+
+            <!-- 溫度顯示 -->
+            <div class="weather-temp" id="weather-temp">--°C</div>
+
+            <!-- 城市名稱 -->
+            <div class="weather-location" id="weather-location">📍 高雄市</div>
+          </div>
+
+          <!-- 詳細資訊 -->
+          <div class="weather-details">
+            <div class="weather-detail-item">
+              <span class="detail-label">體感溫度</span>
+              <span class="detail-value" id="feels-like">--°C</span>
+            </div>
+
+            <div class="weather-detail-item">
+              <span class="detail-label">濕度</span>
+              <span class="detail-value" id="humidity">--%</span>
+            </div>
+
+            <div class="weather-detail-item">
+              <span class="detail-label">風速</span>
+              <span class="detail-value" id="wind-speed">-- m/s</span>
+            </div>
+
+            <div class="weather-detail-item">
+              <span class="detail-label">氣壓</span>
+              <span class="detail-value" id="pressure">-- hPa</span>
+            </div>
+          </div>
+
+          <!-- 更新時間 -->
+          <div class="weather-update">
+            <span id="update-time">載入中...</span>
+            <button id="refresh-weather-btn" class="refresh-btn">
+              🔄 更新
+            </button>
+          </div>
+
+          <!-- 城市設定 -->
+          <div class="weather-settings">
+            <div class="setting-item">
+              <label>城市</label>
+              <input
+                type="text"
+                id="city-input"
+                value="Kaohsiung"
+                placeholder="輸入城市名稱（英文）"
+              />
+            </div>
+            <button id="change-city-btn" class="btn-primary">更換城市</button>
+          </div>
+        </div>
+      </div>
     </main>
 
     <!-- ========== 3. Dock 工具列 ========== -->

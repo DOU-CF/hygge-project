@@ -8,6 +8,7 @@ let todoApp = null;
 let pomodoroTimer = null;
 let waterReminder = null;
 let noteManager = null;
+let weatherManager = null;
 
 // ==================== 卡片管理系統 ====================
 class WidgetManager {
@@ -135,6 +136,12 @@ class WidgetManager {
       case "note":
         if (!noteManager) {
           noteManager = new NoteManager();
+        }
+        break;
+
+      case "weather": // 👈 加入這整段
+        if (!weatherManager) {
+          weatherManager = new WeatherManager();
         }
         break;
     }
@@ -839,6 +846,214 @@ class NoteManager {
   loadNotes() {
     const saved = localStorage.getItem("hygge-notes");
     return saved ? JSON.parse(saved) : [];
+  }
+}
+
+// ==================== 🌤️ Day 7: 天氣功能 ====================
+class WeatherManager {
+  constructor() {
+    console.log("🌤️ WeatherManager 初始化中...");
+
+    // ⚠️ API Key！
+    this.apiKey = "6ff75519f2f400207595592ab3ff4f45";
+    this.city = this.loadCity() || "Kaohsiung";
+    this.weatherData = null;
+
+    this.init();
+  }
+
+  init() {
+    this.cacheDom();
+    this.bindEvents();
+    this.fetchWeather();
+    console.log("✅ WeatherManager 初始化完成！");
+  }
+
+  cacheDom() {
+    this.weatherIcon = document.querySelector("#weather-icon");
+    this.weatherDescription = document.querySelector("#weather-description");
+    this.weatherTemp = document.querySelector("#weather-temp");
+    this.weatherLocation = document.querySelector("#weather-location");
+    this.feelsLike = document.querySelector("#feels-like");
+    this.humidity = document.querySelector("#humidity");
+    this.windSpeed = document.querySelector("#wind-speed");
+    this.pressure = document.querySelector("#pressure");
+    this.updateTime = document.querySelector("#update-time");
+    this.refreshBtn = document.querySelector("#refresh-weather-btn");
+    this.cityInput = document.querySelector("#city-input");
+    this.changeCityBtn = document.querySelector("#change-city-btn");
+  }
+
+  bindEvents() {
+    if (!this.refreshBtn || !this.changeCityBtn) {
+      console.warn("⚠️ 天氣元素未找到");
+      return;
+    }
+
+    this.refreshBtn.addEventListener("click", () => this.fetchWeather());
+    this.changeCityBtn.addEventListener("click", () => this.changeCity());
+    this.cityInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") this.changeCity();
+    });
+  }
+
+  // 獲取天氣資料
+  async fetchWeather() {
+    try {
+      this.showLoading();
+
+      const url = `https://api.openweathermap.org/data/2.5/weather?q=${this.city}&appid=${this.apiKey}&units=metric&lang=zh_tw`;
+
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      this.weatherData = data;
+      this.render();
+
+      console.log("✅ 天氣資料獲取成功:", data);
+    } catch (error) {
+      console.error("❌ 獲取天氣失敗:", error);
+      this.showError(error.message);
+    }
+  }
+
+  // 顯示載入中
+  showLoading() {
+    if (this.weatherDescription) {
+      this.weatherDescription.textContent = "載入中...";
+    }
+    if (this.weatherTemp) {
+      this.weatherTemp.textContent = "--°C";
+    }
+  }
+
+  // 顯示錯誤
+  showError(message) {
+    if (this.weatherDescription) {
+      this.weatherDescription.textContent = "載入失敗";
+      this.weatherDescription.style.color = "#ef4444";
+    }
+    if (this.weatherTemp) {
+      this.weatherTemp.textContent = "😞";
+    }
+
+    alert(
+      `無法獲取天氣資料：${message}\n\n請檢查：\n1. 城市名稱是否正確\n2. API Key 是否有效\n3. 網路連線是否正常`
+    );
+  }
+
+  // 渲染畫面
+  render() {
+    if (!this.weatherData) return;
+
+    const data = this.weatherData;
+
+    // 天氣圖示
+    if (this.weatherIcon) {
+      this.weatherIcon.textContent = this.getWeatherIcon(data.weather[0].main);
+    }
+
+    // 天氣描述
+    if (this.weatherDescription) {
+      this.weatherDescription.textContent = data.weather[0].description;
+      this.weatherDescription.style.color = "#666";
+    }
+
+    // 溫度
+    if (this.weatherTemp) {
+      const temp = Math.round(data.main.temp);
+      this.weatherTemp.textContent = `${temp}°C`;
+
+      // 根據溫度改變顏色
+      this.weatherTemp.className = "weather-temp";
+      if (temp >= 30) {
+        this.weatherTemp.classList.add("hot");
+      } else if (temp >= 20) {
+        this.weatherTemp.classList.add("warm");
+      } else if (temp >= 10) {
+        this.weatherTemp.classList.add("cool");
+      } else {
+        this.weatherTemp.classList.add("cold");
+      }
+    }
+
+    // 城市名稱
+    if (this.weatherLocation) {
+      this.weatherLocation.textContent = `📍 ${data.name}`;
+    }
+
+    // 詳細資訊
+    if (this.feelsLike) {
+      this.feelsLike.textContent = `${Math.round(data.main.feels_like)}°C`;
+    }
+    if (this.humidity) {
+      this.humidity.textContent = `${data.main.humidity}%`;
+    }
+    if (this.windSpeed) {
+      this.windSpeed.textContent = `${data.wind.speed} m/s`;
+    }
+    if (this.pressure) {
+      this.pressure.textContent = `${data.main.pressure} hPa`;
+    }
+
+    // 更新時間
+    if (this.updateTime) {
+      const now = new Date().toLocaleString("zh-TW");
+      this.updateTime.textContent = `更新時間：${now}`;
+    }
+  }
+
+  // 根據天氣狀況返回對應的 Emoji
+  getWeatherIcon(weather) {
+    const icons = {
+      Clear: "☀️",
+      Clouds: "☁️",
+      Rain: "🌧️",
+      Drizzle: "🌦️",
+      Thunderstorm: "⛈️",
+      Snow: "❄️",
+      Mist: "🌫️",
+      Smoke: "🌫️",
+      Haze: "🌫️",
+      Dust: "🌫️",
+      Fog: "🌫️",
+      Sand: "🌫️",
+      Ash: "🌋",
+      Squall: "💨",
+      Tornado: "🌪️",
+    };
+
+    return icons[weather] || "🌤️";
+  }
+
+  // 更換城市
+  changeCity() {
+    const newCity = this.cityInput.value.trim();
+
+    if (!newCity) {
+      alert("請輸入城市名稱！");
+      return;
+    }
+
+    this.city = newCity;
+    this.saveCity();
+    this.fetchWeather();
+
+    console.log("✅ 城市已更換為:", newCity);
+  }
+
+  // 儲存城市到 localStorage
+  saveCity() {
+    localStorage.setItem("hygge-weather-city", this.city);
+  }
+
+  // 從 localStorage 載入城市
+  loadCity() {
+    return localStorage.getItem("hygge-weather-city");
   }
 }
 
