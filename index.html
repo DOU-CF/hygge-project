@@ -184,6 +184,50 @@
           </div>
         </div>
       </div>
+      <!-- ========== 📒 筆記卡片 ========== -->
+      <div class="widget-card" id="note-widget" data-widget="note">
+        <div class="card-header">
+          <h2>📒 筆記</h2>
+          <button class="close-btn" data-close="note">✕</button>
+        </div>
+
+        <div class="card-body">
+          <!-- 新增筆記表單 -->
+          <div class="note-input-section">
+            <input
+              type="text"
+              id="note-title-input"
+              class="note-title-input"
+              placeholder="筆記標題..."
+              maxlength="50"
+            />
+
+            <textarea
+              id="note-content-input"
+              class="note-content-input"
+              placeholder="輸入筆記內容...&#10;可以多行書寫..."
+              rows="6"
+            ></textarea>
+
+            <button id="save-note-btn" class="btn-primary">💾 儲存筆記</button>
+          </div>
+
+          <!-- 筆記列表 -->
+          <div class="notes-divider">
+            <span>已儲存的筆記</span>
+          </div>
+
+          <div id="notes-list" class="notes-list">
+            <!-- 筆記項目會動態插入這裡 -->
+          </div>
+
+          <!-- 空狀態 -->
+          <div id="notes-empty" class="empty-state">
+            <p>📝 還沒有筆記</p>
+            <p class="empty-hint">開始記錄你的想法吧！</p>
+          </div>
+        </div>
+      </div>
     </main>
 
     <!-- ========== 3. Dock 工具列 ========== -->

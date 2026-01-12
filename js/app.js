@@ -7,6 +7,7 @@ console.log("🆕 升級版：支援多卡片並排顯示 + 響應式設計 + �
 let todoApp = null;
 let pomodoroTimer = null;
 let waterReminder = null;
+let noteManager = null;
 
 // ==================== 卡片管理系統 ====================
 class WidgetManager {
@@ -129,6 +130,11 @@ class WidgetManager {
       case "water":
         if (!waterReminder) {
           waterReminder = new WaterReminder();
+        }
+        break;
+      case "note":
+        if (!noteManager) {
+          noteManager = new NoteManager();
         }
         break;
     }
@@ -668,5 +674,172 @@ document.addEventListener("DOMContentLoaded", () => {
   console.log("  - 🆕 多卡片並排顯示");
   console.log("  - 🆕 響應式設計");
 });
+
+// ==================== 📒 Day 7: 筆記功能 ====================
+class NoteManager {
+  constructor() {
+    console.log("📒 NoteManager 初始化中...");
+    this.notes = this.loadNotes();
+    this.init();
+  }
+
+  init() {
+    this.cacheDom();
+    this.bindEvents();
+    this.render();
+    console.log("✅ NoteManager 初始化完成！");
+  }
+
+  cacheDom() {
+    this.titleInput = document.querySelector("#note-title-input");
+    this.contentInput = document.querySelector("#note-content-input");
+    this.saveBtn = document.querySelector("#save-note-btn");
+    this.notesList = document.querySelector("#notes-list");
+    this.emptyState = document.querySelector("#notes-empty");
+  }
+
+  bindEvents() {
+    if (!this.saveBtn || !this.titleInput || !this.contentInput) {
+      console.warn("⚠️ 筆記元素未找到");
+      return;
+    }
+
+    this.saveBtn.addEventListener("click", () => this.saveNote());
+
+    this.contentInput.addEventListener("keydown", (e) => {
+      if (e.ctrlKey && e.key === "Enter") {
+        this.saveNote();
+      }
+    });
+  }
+
+  saveNote() {
+    const title = this.titleInput.value.trim();
+    const content = this.contentInput.value.trim();
+
+    if (!title) {
+      alert("請輸入筆記標題！");
+      this.titleInput.focus();
+      return;
+    }
+
+    if (!content) {
+      alert("請輸入筆記內容！");
+      this.contentInput.focus();
+      return;
+    }
+
+    const newNote = {
+      id: Date.now(),
+      title: title,
+      content: content,
+      createdAt: new Date().toLocaleString("zh-TW"),
+      timestamp: Date.now(),
+    };
+
+    this.notes.unshift(newNote);
+    this.saveToStorage();
+    this.render();
+
+    this.titleInput.value = "";
+    this.contentInput.value = "";
+    this.titleInput.focus();
+
+    console.log("✅ 筆記已儲存:", title);
+  }
+
+  toggleNoteContent(id) {
+    const noteElement = document.querySelector(`[data-note-id="${id}"]`);
+    if (noteElement) {
+      const contentElement = noteElement.querySelector(".note-item-content");
+      const viewBtn = noteElement.querySelector(".note-view-btn");
+
+      if (contentElement.classList.contains("expanded")) {
+        contentElement.classList.remove("expanded");
+        viewBtn.textContent = "👁️ 查看";
+      } else {
+        contentElement.classList.add("expanded");
+        viewBtn.textContent = "👁️ 收起";
+      }
+    }
+  }
+
+  deleteNote(id) {
+    const note = this.notes.find((n) => n.id === id);
+
+    if (confirm(`確定要刪除「${note.title}」嗎？`)) {
+      this.notes = this.notes.filter((n) => n.id !== id);
+      this.saveToStorage();
+      this.render();
+      console.log("✅ 筆記已刪除:", note.title);
+    }
+  }
+
+  render() {
+    if (!this.notesList || !this.emptyState) {
+      return;
+    }
+
+    this.notesList.innerHTML = "";
+
+    if (this.notes.length === 0) {
+      this.emptyState.style.display = "block";
+      this.notesList.style.display = "none";
+    } else {
+      this.emptyState.style.display = "none";
+      this.notesList.style.display = "block";
+
+      this.notes.forEach((note) => {
+        const noteElement = this.createNoteElement(note);
+        this.notesList.appendChild(noteElement);
+      });
+    }
+  }
+
+  createNoteElement(note) {
+    const div = document.createElement("div");
+    div.className = "note-item";
+    div.dataset.noteId = note.id;
+
+    div.innerHTML = `
+      <div class="note-item-header" onclick="noteManager.toggleNoteContent(${
+        note.id
+      })">
+        <div class="note-item-title">${this.escapeHtml(note.title)}</div>
+        <div class="note-item-date">${note.createdAt}</div>
+      </div>
+      <div class="note-item-content">${this.escapeHtml(note.content)}</div>
+      <div class="note-item-actions">
+        <button class="note-action-btn note-view-btn" onclick="noteManager.toggleNoteContent(${
+          note.id
+        })">
+          👁️ 查看
+        </button>
+        <button class="note-action-btn note-delete-btn" onclick="noteManager.deleteNote(${
+          note.id
+        })">
+          🗑️ 刪除
+        </button>
+      </div>
+    `;
+
+    return div;
+  }
+
+  escapeHtml(text) {
+    const div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  saveToStorage() {
+    localStorage.setItem("hygge-notes", JSON.stringify(this.notes));
+  }
+
+  loadNotes() {
+    const saved = localStorage.getItem("hygge-notes");
+    return saved ? JSON.parse(saved) : [];
+  }
+}
 
 console.log("✅ 所有功能已載入！");
