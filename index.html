@@ -77,6 +77,75 @@
         </div>
       </div>
       <!-- ========== 待辦清單卡片結束 ========== -->
+
+      <!-- ========== 番茄鐘卡片 ========== -->
+      <div
+        class="widget-card"
+        id="pomodoro-widget"
+        data-widget="pomodoro"
+        style="display: none"
+      >
+        <div class="card-header">
+          <h2>🍅 番茄鐘</h2>
+          <button class="close-btn" data-close="pomodoro">x</button>
+        </div>
+
+        <div class="card-body">
+          <!-- 時間顯示 -->
+          <div class="timer-display" id="timer-display">
+            <span id="timer-minutes">25</span>
+            <span class="timer-colon">:</span>
+            <span id="timer-seconds">00</span>
+          </div>
+
+          <!-- 進度條 -->
+          <div class="timer-progress">
+            <div class="timer-progress-bar" id="progress-bar"></div>
+          </div>
+
+          <!-- 狀態提示 -->
+          <p class="timer-status" id="timer-status">準備開始專注 25 分鐘</p>
+
+          <!-- 控制按鈕 -->
+          <div class="timer-controls">
+            <button id="start-btn" class="control-btn primary">
+              <span>▶</span> 開始
+            </button>
+            <button id="pause-btn" class="control-btn" disabled>
+              <span>⏸</span> 暫停
+            </button>
+            <button id="reset-btn" class="control-btn">
+              <span>↻</span> 重置
+            </button>
+          </div>
+
+          <!-- 設定區 -->
+          <div class="timer-settings">
+            <div class="setting-item">
+              <label>工作時間（分鐘）</label>
+              <input
+                type="number"
+                id="work-time-input"
+                value="25"
+                min="1"
+                max="60"
+              />
+            </div>
+            <div class="setting-item">
+              <label>休息時間（分鐘）</label>
+              <input
+                type="number"
+                id="break-time-input"
+                value="5"
+                min="1"
+                max="30"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- ========== 番茄鐘卡片結束 ========== -->
+      </div>
     </main>
 
     <!-- ========== 3. Dock 工具列 ========== -->

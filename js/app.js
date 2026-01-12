@@ -43,9 +43,11 @@ window.addEventListener("DOMContentLoaded", function () {
       const widgetType = this.dataset.widget || "未知";
 
       //openWidget(widgetType);
-      // 目前只處理待辦清單
+      // 處理不同的工具
       if (widgetType === "todo") {
         openTodoWidget();
+      } else if (widgetType === "pomodoro") {
+        openPomodoroWidget();
       } else {
         alert(`${widgetType} 功能開發中，敬請期待！`);
       }
@@ -125,15 +127,43 @@ window.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // 關閉按鈕事件
-  if (closeBtn) {
-    closeBtn.addEventListener("click", closeTodoWidget);
+  // 開啟番茄鐘卡片
+  function openPomodoroWidget() {
+    const pomodoroWidget = document.querySelector("#pomodoro-widget");
+    if (pomodoroWidget) {
+      pomodoroWidget.style.display = "block";
+      pomodoroWidget.style.animation = "fadeIn 0.3s ease";
+      console.log("🍅 番茄鐘卡片已開啟");
+    }
   }
 
-  // 按 Esc 鍵關閉
+  // 關閉番茄鐘卡片
+  function closePomodoroWidget() {
+    const pomodoroWidget = document.querySelector("#pomodoro-widget");
+    if (pomodoroWidget) {
+      pomodoroWidget.style.display = "none";
+      console.log("🍅 番茄鐘卡片已關閉");
+    }
+  }
+
+  // 關閉按鈕事件（處理所有卡片）
+  const closeButtons = document.querySelectorAll(".close-btn");
+  closeButtons.forEach((btn) => {
+    btn.addEventListener("click", function () {
+      const closeType = this.dataset.close;
+      if (closeType === "todo") {
+        closeTodoWidget();
+      } else if (closeType === "pomodoro") {
+        closePomodoroWidget();
+      }
+    });
+  });
+
+  // 按 Esc 鍵關閉所有卡片
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") {
       closeTodoWidget();
+      closePomodoroWidget();
     }
   });
 
@@ -361,3 +391,238 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 console.log("✅ 待辦清單功能已載入！");
+
+// ==================== Day 6: 番茄鐘功能 ====================
+
+class PomodoroTimer {
+  constructor() {
+    console.log("🍅 PomodoroTimer 初始化中...");
+
+    // 計時器設定（秒）
+    this.workTime = 25 * 60; // 工作時間：25分鐘
+    this.breakTime = 5 * 60; // 休息時間：5分鐘
+    this.timeLeft = this.workTime; // 剩餘時間
+    this.totalTime = this.workTime; // 總時間（用於計算進度）
+
+    // 計時器狀態
+    this.isRunning = false; // 是否運行中
+    this.isWorkTime = true; // 是否為工作時間
+    this.intervalId = null; // 計時器 ID
+
+    // 初始化
+    this.init();
+  }
+
+  // 初始化
+  init() {
+    this.cacheDom();
+    this.bindEvents();
+    this.updateDisplay();
+    console.log("✅ PomodoroTimer 初始化完成！");
+  }
+
+  // 快取 DOM 元素
+  cacheDom() {
+    this.timerDisplay = document.querySelector("#timer-display");
+    this.minutesDisplay = document.querySelector("#timer-minutes");
+    this.secondsDisplay = document.querySelector("#timer-seconds");
+    this.startBtn = document.querySelector("#start-btn");
+    this.pauseBtn = document.querySelector("#pause-btn");
+    this.resetBtn = document.querySelector("#reset-btn");
+    this.statusText = document.querySelector("#timer-status");
+    this.progressBar = document.querySelector("#progress-bar");
+    this.workTimeInput = document.querySelector("#work-time-input");
+    this.breakTimeInput = document.querySelector("#break-time-input");
+  }
+
+  // 綁定事件
+  bindEvents() {
+    if (!this.startBtn || !this.pauseBtn || !this.resetBtn) {
+      console.warn("⚠️ 番茄鐘按鈕元素未找到");
+      return;
+    }
+
+    this.startBtn.addEventListener("click", () => this.start());
+    this.pauseBtn.addEventListener("click", () => this.pause());
+    this.resetBtn.addEventListener("click", () => this.reset());
+
+    // 設定變更事件
+    if (this.workTimeInput) {
+      this.workTimeInput.addEventListener("change", () =>
+        this.updateSettings()
+      );
+    }
+    if (this.breakTimeInput) {
+      this.breakTimeInput.addEventListener("change", () =>
+        this.updateSettings()
+      );
+    }
+  }
+
+  // 開始計時
+  start() {
+    if (this.isRunning) return;
+
+    this.isRunning = true;
+    this.startBtn.disabled = true;
+    this.pauseBtn.disabled = false;
+
+    // 更新狀態顯示
+    if (this.isWorkTime) {
+      this.statusText.textContent = "🎯 專注中...保持專注！";
+      this.timerDisplay.classList.add("running");
+      this.timerDisplay.classList.remove("paused", "break");
+    } else {
+      this.statusText.textContent = "☕ 休息中...放鬆一下！";
+      this.timerDisplay.classList.add("break");
+      this.timerDisplay.classList.remove("running", "paused");
+    }
+
+    // 每秒執行一次
+    this.intervalId = setInterval(() => {
+      this.tick();
+    }, 1000);
+
+    console.log("▶️ 計時器已開始");
+  }
+
+  // 暫停計時
+  pause() {
+    if (!this.isRunning) return;
+
+    this.isRunning = false;
+    this.startBtn.disabled = false;
+    this.pauseBtn.disabled = true;
+    this.statusText.textContent = "⏸️ 已暫停";
+
+    this.timerDisplay.classList.add("paused");
+    this.timerDisplay.classList.remove("running", "break");
+
+    clearInterval(this.intervalId);
+    console.log("⏸️ 計時器已暫停");
+  }
+
+  // 重置計時器
+  reset() {
+    this.pause();
+    this.timeLeft = this.isWorkTime ? this.workTime : this.breakTime;
+    this.totalTime = this.timeLeft;
+    this.updateDisplay();
+    this.updateProgress();
+
+    this.statusText.textContent = this.isWorkTime
+      ? "準備開始專注 25 分鐘"
+      : "準備休息 5 分鐘";
+
+    this.timerDisplay.classList.remove("running", "paused", "break");
+
+    console.log("↻ 計時器已重置");
+  }
+
+  // 每秒執行
+  tick() {
+    this.timeLeft--;
+    this.updateDisplay();
+    this.updateProgress();
+
+    // 時間到了
+    if (this.timeLeft <= 0) {
+      this.complete();
+    }
+  }
+
+  // 完成一個循環
+  complete() {
+    this.pause();
+
+    if (this.isWorkTime) {
+      // 工作完成，進入休息
+      alert("🎉 專注時間結束！休息一下吧！");
+      this.isWorkTime = false;
+      this.timeLeft = this.breakTime;
+      this.totalTime = this.breakTime;
+      this.statusText.textContent = "準備休息 5 分鐘";
+    } else {
+      // 休息完成，回到工作
+      alert("✨ 休息結束！準備繼續加油！");
+      this.isWorkTime = true;
+      this.timeLeft = this.workTime;
+      this.totalTime = this.workTime;
+      this.statusText.textContent = "準備開始專注 25 分鐘";
+    }
+
+    this.updateDisplay();
+    this.updateProgress();
+    this.timerDisplay.classList.remove("running", "paused", "break");
+
+    console.log(`✅ ${this.isWorkTime ? "工作" : "休息"}階段完成`);
+  }
+
+  // 更新畫面顯示
+  updateDisplay() {
+    if (!this.minutesDisplay || !this.secondsDisplay) return;
+
+    const minutes = Math.floor(this.timeLeft / 60);
+    const seconds = this.timeLeft % 60;
+
+    this.minutesDisplay.textContent = String(minutes).padStart(2, "0");
+    this.secondsDisplay.textContent = String(seconds).padStart(2, "0");
+  }
+
+  // 更新進度條
+  updateProgress() {
+    if (!this.progressBar) return;
+
+    const progress = ((this.totalTime - this.timeLeft) / this.totalTime) * 100;
+    this.progressBar.style.width = `${progress}%`;
+  }
+
+  // 更新設定
+  updateSettings() {
+    if (!this.workTimeInput || !this.breakTimeInput) return;
+
+    const newWorkTime = parseInt(this.workTimeInput.value) || 25;
+    const newBreakTime = parseInt(this.breakTimeInput.value) || 5;
+
+    this.workTime = newWorkTime * 60;
+    this.breakTime = newBreakTime * 60;
+
+    // 如果當前沒有運行，更新時間
+    if (!this.isRunning) {
+      this.timeLeft = this.isWorkTime ? this.workTime : this.breakTime;
+      this.totalTime = this.timeLeft;
+      this.updateDisplay();
+      this.updateProgress();
+
+      console.log(
+        `⚙️ 設定已更新：工作 ${newWorkTime} 分鐘，休息 ${newBreakTime} 分鐘`
+      );
+    }
+  }
+}
+
+// ==================== PomodoroTimer 初始化 ====================
+document.addEventListener("DOMContentLoaded", () => {
+  let pomodoroTimer = null;
+
+  const pomodoroWidget = document.querySelector("#pomodoro-widget");
+
+  if (!pomodoroWidget) {
+    console.warn("⚠️ 找不到 #pomodoro-widget，番茄鐘功能無法初始化");
+    return;
+  }
+
+  // 監聽卡片的顯示狀態
+  const observer = new MutationObserver(() => {
+    if (pomodoroWidget.style.display !== "none" && !pomodoroTimer) {
+      pomodoroTimer = new PomodoroTimer();
+    }
+  });
+
+  observer.observe(pomodoroWidget, {
+    attributes: true,
+    attributeFilter: ["style"],
+  });
+});
+
+console.log("✅ 番茄鐘功能已載入！");
