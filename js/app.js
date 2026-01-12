@@ -1366,7 +1366,7 @@ let todos = [];
 
 console.log("✅ 所有功能已載入！");
 
-// ==================== 📅 周計劃功能 ====================
+// ==================== 📅 周計劃功能 ====================// ==================== 📅 周計劃功能 ====================
 class WeeklyPlanner {
   constructor() {
     console.log("🗓 WeeklyPlanner 初始化中...");
@@ -1377,6 +1377,7 @@ class WeeklyPlanner {
     this.cacheDom();
     this.bindEvents();
     this.render();
+    this.updateWeekRange();
     console.log("✅ WeeklyPlanner 初始化完成！");
   }
 
@@ -1418,6 +1419,7 @@ class WeeklyPlanner {
       }
     });
 
+    this.highlightToday();
     console.log("✅ 周計劃已更新");
   }
 
@@ -1432,7 +1434,9 @@ class WeeklyPlanner {
 
     li.innerHTML = `
       <div class="task-header" style="border-left: 4px solid ${projectColor}">
-        <span class="task-title">${this.escapeHtml(todo.title)}</span>
+        <span class="task-title">${this.escapeHtml(
+          todo.text || todo.title
+        )}</span>
         <button class="task-complete-btn" data-id="${todo.id}">✓</button>
       </div>
       ${todo.project ? `<div class="task-project">${todo.project}</div>` : ""}
@@ -1459,7 +1463,7 @@ class WeeklyPlanner {
       this.render();
       if (ganttChart) ganttChart.render();
 
-      console.log(`✅ 完成任務: ${todo.title}`);
+      console.log(`✅ 完成任務: ${todo.text || todo.title}`);
     }
   }
 
@@ -1494,7 +1498,53 @@ class WeeklyPlanner {
     div.textContent = text;
     return div.innerHTML;
   }
-}
+
+  // 更新周日期範圍
+  updateWeekRange() {
+    const weekRangeSpan = document.querySelector("#week-range");
+    if (!weekRangeSpan) return;
+
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+
+    // 計算本週一的日期
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+
+    // 計算本週日的日期
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+
+    // 格式化顯示
+    const format = (date) => `${date.getMonth() + 1}/${date.getDate()}`;
+    weekRangeSpan.textContent = `(${format(monday)} - ${format(sunday)})`;
+  }
+
+  // 高亮今天
+  highlightToday() {
+    const today = new Date().getDay();
+    const dayMap = {
+      0: "sun",
+      1: "mon",
+      2: "tue",
+      3: "wed",
+      4: "thu",
+      5: "fri",
+      6: "sat",
+    };
+
+    const todayDay = dayMap[today];
+
+    // 移除所有 today class
+    this.dayColumns.forEach((col) => col.classList.remove("today"));
+
+    // 加到今天的欄位
+    const todayColumn = document.querySelector(`[data-day="${todayDay}"]`);
+    if (todayColumn) {
+      todayColumn.classList.add("today");
+    }
+  }
+} // ⬅️ WeeklyPlanner 類別結束
 
 // ==================== 📊 甘特圖功能 ====================
 class GanttChart {

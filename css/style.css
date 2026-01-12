@@ -2301,6 +2301,11 @@ input:checked + .slider:before {
   gap: 12px;
   padding: 0;
 }
+/* 今天的欄位高亮 */
+.day-column.today {
+  background: rgba(102, 126, 234, 0.15);
+  border: 2px solid rgba(102, 126, 234, 0.3);
+}
 
 /* 單日欄位 */
 .day-column {
