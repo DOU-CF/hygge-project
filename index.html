@@ -484,6 +484,9 @@
         <div class="dock-item" data-widget="weekly">
           <span class="dock-icon">🗓</span>
           <span class="dock-label">周計劃</span>
+          <div class="week-grid">
+            <!-- 這裡用 JS 生成每個 day 的 task -->
+          </div>
         </div>
 
         <!-- 甘特圖（開發中） -->
@@ -493,7 +496,84 @@
         </div>
       </div>
     </div>
+    <!-- ========== 編輯待辦對話框 ========== -->
+    <div class="modal-overlay" id="edit-modal-overlay">
+      <div class="edit-modal">
+        <div class="modal-header">
+          <h3>✏️ 編輯待辦事項</h3>
+          <button class="modal-close-btn" id="close-edit-modal">✕</button>
+        </div>
 
+        <div class="modal-body">
+          <!-- 任務標題 -->
+          <div class="form-group">
+            <label>任務標題</label>
+            <input
+              type="text"
+              id="edit-todo-text"
+              placeholder="輸入任務標題..."
+              maxlength="50"
+            />
+          </div>
+
+          <!-- 專案 -->
+          <div class="form-group">
+            <label>專案分類</label>
+            <select id="edit-todo-project">
+              <option value="">無專案</option>
+              <option value="Hygge">Hygge</option>
+              <option value="作品集">作品集</option>
+              <option value="學習">學習</option>
+              <option value="運動">運動</option>
+              <option value="生活">生活</option>
+            </select>
+          </div>
+
+          <!-- 星期 -->
+          <div class="form-group">
+            <label>分配到星期</label>
+            <select id="edit-todo-weekday">
+              <option value="">不分配</option>
+              <option value="mon">星期一</option>
+              <option value="tue">星期二</option>
+              <option value="wed">星期三</option>
+              <option value="thu">星期四</option>
+              <option value="fri">星期五</option>
+              <option value="sat">星期六</option>
+              <option value="sun">星期日</option>
+            </select>
+          </div>
+
+          <!-- 進度 -->
+          <div class="form-group">
+            <label>完成進度 <span id="progress-value">0%</span></label>
+            <input
+              type="range"
+              id="edit-todo-progress"
+              min="0"
+              max="100"
+              value="0"
+              step="5"
+            />
+          </div>
+
+          <!-- 優先級 -->
+          <div class="form-group">
+            <label>優先級</label>
+            <div class="priority-options">
+              <button class="priority-btn" data-priority="high">🔴 高</button>
+              <button class="priority-btn" data-priority="medium">🟡 中</button>
+              <button class="priority-btn" data-priority="low">🟢 低</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button id="cancel-edit-btn" class="btn-secondary">取消</button>
+          <button id="save-edit-btn" class="btn-primary">儲存</button>
+        </div>
+      </div>
+    </div>
     <script src="./js/app.js"></script>
   </body>
 </html>

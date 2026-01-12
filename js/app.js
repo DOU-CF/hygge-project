@@ -203,6 +203,18 @@ class TodoApp {
     this.emptyState = document.querySelector("#todo-empty");
     this.todoCount = document.querySelector("#todo-count");
     this.clearBtn = document.querySelector("#clear-completed-btn");
+
+    // ✅ 編輯對話框元素
+    this.editModal = document.querySelector("#edit-modal-overlay");
+    this.editTextInput = document.querySelector("#edit-todo-text");
+    this.editProjectSelect = document.querySelector("#edit-todo-project");
+    this.editWeekdaySelect = document.querySelector("#edit-todo-weekday");
+    this.editProgressInput = document.querySelector("#edit-todo-progress");
+    this.progressValue = document.querySelector("#progress-value");
+    this.priorityBtns = document.querySelectorAll(".priority-btn");
+    this.saveEditBtn = document.querySelector("#save-edit-btn");
+    this.cancelEditBtn = document.querySelector("#cancel-edit-btn");
+    this.closeEditModalBtn = document.querySelector("#close-edit-modal");
   }
 
   bindEvents() {
@@ -216,6 +228,45 @@ class TodoApp {
       if (e.key === "Enter") this.addTodo();
     });
     this.clearBtn.addEventListener("click", () => this.clearCompleted());
+
+    // ✅ 編輯對話框事件（放在 bindEvents 方法裡面）
+    if (this.saveEditBtn) {
+      this.saveEditBtn.addEventListener("click", () => this.saveEdit());
+    }
+
+    if (this.cancelEditBtn) {
+      this.cancelEditBtn.addEventListener("click", () => this.closeEditModal());
+    }
+
+    if (this.closeEditModalBtn) {
+      this.closeEditModalBtn.addEventListener("click", () =>
+        this.closeEditModal()
+      );
+    }
+
+    // 點擊遮罩關閉
+    if (this.editModal) {
+      this.editModal.addEventListener("click", (e) => {
+        if (e.target === this.editModal) {
+          this.closeEditModal();
+        }
+      });
+    }
+
+    // 進度條即時更新
+    if (this.editProgressInput) {
+      this.editProgressInput.addEventListener("input", (e) => {
+        this.progressValue.textContent = `${e.target.value}%`;
+      });
+    }
+
+    // 優先級按鈕
+    this.priorityBtns.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        this.priorityBtns.forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+      });
+    });
   }
 
   addTodo() {
@@ -303,20 +354,42 @@ class TodoApp {
     const li = document.createElement("li");
     li.className = `todo-item ${todo.completed ? "completed" : ""}`;
 
+    // ✅ 添加優先級圖示
+    const priorityIcon =
+      todo.priority === "high"
+        ? "🔴"
+        : todo.priority === "medium"
+        ? "🟡"
+        : todo.priority === "low"
+        ? "🟢"
+        : "";
+
     li.innerHTML = `
       <input 
         type="checkbox" 
         class="todo-checkbox" 
         ${todo.completed ? "checked" : ""}
       >
-      <span class="todo-text">${this.escapeHtml(todo.text)}</span>
-      <button class="todo-delete-btn">刪除</button>
+      <span class="todo-text">
+        ${priorityIcon} ${this.escapeHtml(todo.text)}
+        ${
+          todo.project
+            ? `<span class="todo-project-tag">${todo.project}</span>`
+            : ""
+        }
+      </span>
+      <div class="todo-actions">
+        <button class="todo-edit-btn" title="編輯">✏️</button>
+        <button class="todo-delete-btn" title="刪除">🗑️</button>
+      </div>
     `;
 
     const checkbox = li.querySelector(".todo-checkbox");
+    const editBtn = li.querySelector(".todo-edit-btn");
     const deleteBtn = li.querySelector(".todo-delete-btn");
 
     checkbox.addEventListener("change", () => this.toggleTodo(todo.id));
+    editBtn.addEventListener("click", () => this.openEditModal(todo.id));
     deleteBtn.addEventListener("click", () => this.deleteTodo(todo.id));
 
     return li;
@@ -336,7 +409,81 @@ class TodoApp {
     const saved = localStorage.getItem("hygge-todos");
     return saved ? JSON.parse(saved) : [];
   }
-}
+
+  // ==================== ✅ 編輯功能的三個新方法 ====================
+
+  // 打開編輯對話框
+  openEditModal(id) {
+    const todo = this.todos.find((t) => t.id === id);
+    if (!todo) return;
+
+    this.currentEditId = id;
+
+    // 填充表單
+    this.editTextInput.value = todo.text;
+    this.editProjectSelect.value = todo.project || "";
+    this.editWeekdaySelect.value = todo.weekDay || "";
+    this.editProgressInput.value = todo.progress || 0;
+    this.progressValue.textContent = `${todo.progress || 0}%`;
+
+    // 設定優先級
+    this.priorityBtns.forEach((btn) => {
+      btn.classList.remove("active");
+      if (btn.dataset.priority === todo.priority) {
+        btn.classList.add("active");
+      }
+    });
+
+    // 顯示對話框
+    this.editModal.classList.add("active");
+    this.editTextInput.focus();
+
+    console.log("✅ 開啟編輯對話框:", todo);
+  }
+
+  // 關閉編輯對話框
+  closeEditModal() {
+    this.editModal.classList.remove("active");
+    this.currentEditId = null;
+    console.log("✅ 關閉編輯對話框");
+  }
+
+  // 儲存編輯
+  saveEdit() {
+    const text = this.editTextInput.value.trim();
+
+    if (!text) {
+      alert("請輸入任務標題！");
+      this.editTextInput.focus();
+      return;
+    }
+
+    const todo = this.todos.find((t) => t.id === this.currentEditId);
+    if (!todo) return;
+
+    // 更新任務
+    todo.text = text;
+    todo.project = this.editProjectSelect.value || null;
+    todo.weekDay = this.editWeekdaySelect.value || null;
+    todo.progress = parseInt(this.editProgressInput.value) || 0;
+
+    // 取得選中的優先級
+    const activePriorityBtn = document.querySelector(".priority-btn.active");
+    todo.priority = activePriorityBtn
+      ? activePriorityBtn.dataset.priority
+      : null;
+
+    this.saveTodos();
+    this.render();
+    this.closeEditModal();
+
+    // 同步更新其他視圖
+    if (weeklyPlanner) weeklyPlanner.render();
+    if (ganttChart) ganttChart.render();
+
+    console.log("✅ 任務已更新:", todo);
+  }
+} // ⬅️ TodoApp 類別結束
 
 // ==================== Day 6: 番茄鐘功能 ====================
 class PomodoroTimer {
