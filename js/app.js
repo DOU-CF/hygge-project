@@ -12,6 +12,54 @@ let weatherManager = null;
 let weeklyPlanner = null;
 let ganttChart = null;
 
+// ==================== 🆕 B階段：AppState 統一數據管理 ====================
+class AppState {
+  constructor() {
+    this.todos = [];
+    this.observers = []; // 訂閱者列表
+    console.log("✅ AppState 初始化");
+  }
+
+  // 訂閱通知
+  subscribe(observer) {
+    this.observers.push(observer);
+    console.log(`✅ ${observer.constructor.name} 已訂閱`);
+  }
+
+  // 更新單個 todo
+  updateTodo(id, updates) {
+    const todo = this.todos.find((t) => t.id === id);
+    if (todo) {
+      Object.assign(todo, updates);
+      this.save();
+      this.notifyAll();
+      console.log("✅ Todo 已更新:", id);
+    }
+  }
+
+  // 通知所有訂閱者
+  notifyAll() {
+    this.observers.forEach((observer) => {
+      if (observer.update) {
+        observer.update();
+      }
+    });
+  }
+
+  // 保存到 localStorage
+  save() {
+    localStorage.setItem("hygge-todos", JSON.stringify(this.todos));
+  }
+
+  // 從 localStorage 載入
+  load() {
+    const saved = localStorage.getItem("hygge-todos");
+    this.todos = saved ? JSON.parse(saved) : [];
+    window.todos = this.todos; // 同步到全域變數（向下兼容）
+    return this.todos;
+  }
+}
+
 // ==================== 卡片管理系統 ====================
 class WidgetManager {
   constructor() {
@@ -95,7 +143,7 @@ class WidgetManager {
   initWidgetFunction(type) {
     switch (type) {
       case "todo":
-        if (!todoApp) todoApp = new TodoApp();
+        if (!todoApp) todoApp = new TodoApp(window.appState); // ✅ 加參數
         break;
       case "pomodoro":
         if (!pomodoroTimer) pomodoroTimer = new PomodoroTimer();
@@ -110,10 +158,10 @@ class WidgetManager {
         if (!weatherManager) weatherManager = new WeatherManager();
         break;
       case "weekly":
-        if (!weeklyPlanner) weeklyPlanner = new WeeklyPlanner();
+        if (!weeklyPlanner) weeklyPlanner = new WeeklyPlanner(window.appState); // ✅ 加參數
         break;
       case "gantt":
-        if (!ganttChart) ganttChart = new GanttChart();
+        if (!ganttChart) ganttChart = new GanttChart(window.appState); // ✅ 加參數
         break;
     }
   }
@@ -141,9 +189,12 @@ class WidgetManager {
 
 // ==================== Day 5: 待辦清單功能 ====================
 class TodoApp {
-  constructor() {
+  constructor(appState) {
+    // ✏️ 加一個參數
     console.log("📝 TodoApp 初始化中...");
-    this.todos = this.loadTodos();
+    this.appState = appState; // ✏️ 新增這行
+    this.appState.subscribe(this); // ✏️ 新增這行：訂閱數據變化
+    this.todos = this.appState.load(); // ✏️ 改這行
     this.init();
   }
 
@@ -152,6 +203,12 @@ class TodoApp {
     this.bindEvents();
     this.render();
     console.log("✅ TodoApp 初始化完成！");
+  }
+
+  // ✏️ 新增：當數據變化時自動調用
+  update() {
+    this.todos = this.appState.todos;
+    this.render();
   }
 
   cacheDom() {
@@ -330,12 +387,13 @@ class TodoApp {
   }
 
   saveTodos() {
-    localStorage.setItem("hygge-todos", JSON.stringify(this.todos));
+    this.appState.todos = this.todos; // ✏️ 改這行
+    this.appState.save(); // ✏️ 改這行
+    this.appState.notifyAll(); // ✏️ 新增這行：通知其他視圖
   }
 
   loadTodos() {
-    const saved = localStorage.getItem("hygge-todos");
-    return saved ? JSON.parse(saved) : [];
+    return this.appState.load(); // ✏️ 改這行
   }
 
   openEditModal(id) {
@@ -777,8 +835,14 @@ class WaterReminder {
 console.log("✅ WaterReminder 優化版已載入！");
 
 // ==================== 程式啟動 ====================
+// ==================== 程式啟動 ====================
+// ==================== 程式啟動 ====================
 document.addEventListener("DOMContentLoaded", () => {
   console.log("🚀 Hygge 升級版啟動中...");
+
+  // ✏️ 新增：創建全域 AppState
+  window.appState = new AppState();
+
   const widgetManager = new WidgetManager();
   console.log("✅ Hygge 升級版啟動完成！");
   console.log("📝 功能列表：");
@@ -1120,7 +1184,10 @@ console.log("✅ 所有功能已載入！");
 // ===== 周計劃 - 完整版 (含週次切換功能) =====
 
 class WeeklyPlanner {
-  constructor() {
+  // ✏️ 加一個參數
+  constructor(appState) {
+    this.appState = appState; // ✏️ 新增這行
+    this.appState.subscribe(this); // ✏️ 新增這行：訂閱數據變化
     this.currentWeekOffset = 0;
     this.container = document.querySelector("#weekly-planner");
     this.weekRangeSpan = null;
@@ -1128,6 +1195,11 @@ class WeeklyPlanner {
     this.dayColumns = {};
     this.initializeUI();
     this.setupEventListeners();
+    this.render();
+  }
+
+  // ✏️ 新增：當數據變化時自動調用
+  update() {
     this.render();
   }
 
@@ -1395,19 +1467,7 @@ class WeeklyPlanner {
   }
 
   completeTodo(id) {
-    const todo = window.todos.find((t) => t.id === id);
-    if (todo) {
-      todo.completed = true;
-      if (window.todoApp) {
-        window.todoApp.saveTodos();
-      } else {
-        localStorage.setItem("todos", JSON.stringify(window.todos));
-      }
-      this.render();
-      if (window.ganttChart) {
-        window.ganttChart.render();
-      }
-    }
+    this.appState.updateTodo(id, { completed: true });
   }
 
   highlightToday() {
@@ -1457,15 +1517,13 @@ class WeeklyPlanner {
   }
 }
 
-// 初始化（在 DOM 載入完成後）
-document.addEventListener("DOMContentLoaded", () => {
-  window.weeklyPlanner = new WeeklyPlanner();
-});
-
 // ==================== 📊 甘特圖功能 ====================
 class GanttChart {
-  constructor() {
+  constructor(appState) {
+    // ✏️ 加一個參數
     console.log("📊 GanttChart 初始化中...");
+    this.appState = appState; // ✏️ 新增這行
+    this.appState.subscribe(this); // ✏️ 新增這行：訂閱數據變化
     this.init();
   }
 
@@ -1476,6 +1534,11 @@ class GanttChart {
     console.log("✅ GanttChart 初始化完成！");
   }
 
+  // ✏️ 新增：當數據變化時自動調用
+  update() {
+    this.render();
+  }
+
   cacheDom() {
     this.ganttList = document.querySelector("#gantt-list");
     this.emptyState = document.querySelector(".gantt-empty");
@@ -1484,7 +1547,9 @@ class GanttChart {
   bindEvents() {}
 
   getProjectTodos() {
-    return todos.filter((todo) => todo.project && !todo.completed);
+    return this.appState.todos.filter(
+      (todo) => todo.project && !todo.completed
+    );
   }
 
   groupByProject() {
@@ -1574,6 +1639,8 @@ class GanttChart {
 }
 
 // ==================== 🔗 待辦清單增強版 ====================
+// ⚠️ B階段重構：以下代碼已被 AppState 取代，暫時註解
+/*
 const originalAddTodo = TodoApp.prototype.addTodo;
 TodoApp.prototype.addTodo = function () {
   const text = this.todoInput.value.trim();
@@ -1632,16 +1699,18 @@ TodoApp.prototype.showTaskSettings = function (text) {
 
 const originalSaveTodos = TodoApp.prototype.saveTodos;
 TodoApp.prototype.saveTodos = function () {
-  window.todos = this.todos; // 加上 window.
+  window.todos = this.todos;
   originalSaveTodos.call(this);
   if (weeklyPlanner) weeklyPlanner.render();
   if (ganttChart) ganttChart.render();
 };
+
 const originalLoadTodos = TodoApp.prototype.loadTodos;
 TodoApp.prototype.loadTodos = function () {
   const loaded = originalLoadTodos.call(this);
-  window.todos = loaded; // 加上 window.
+  window.todos = loaded;
   return loaded;
 };
+*/
 
 console.log("✅ 周計劃和甘特圖功能已載入！");
