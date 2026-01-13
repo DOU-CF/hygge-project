@@ -489,6 +489,32 @@
             />
           </div>
 
+          <!-- 🆕 任務類型選擇 -->
+          <div class="form-group">
+            <label>任務類型</label>
+            <div class="task-type-options">
+              <button
+                class="task-type-btn active"
+                data-type="none"
+                type="button"
+              >
+                📌 無時間
+              </button>
+              <button class="task-type-btn" data-type="once" type="button">
+                📅 單次
+              </button>
+              <button class="task-type-btn" data-type="recurring" type="button">
+                🔄 重複
+              </button>
+            </div>
+          </div>
+
+          <!-- 🆕 單次任務的日期選擇（預設隱藏） -->
+          <div class="form-group" id="date-picker-group" style="display: none">
+            <label>任務日期</label>
+            <input type="date" id="edit-todo-date" />
+          </div>
+
           <!-- 專案 -->
           <div class="form-group">
             <label>專案分類</label>
@@ -502,11 +528,15 @@
             </select>
           </div>
 
-          <!-- 星期 -->
-          <div class="form-group">
-            <label>分配到星期</label>
+          <!-- 星期（改為預設隱藏，只有重複任務時顯示） -->
+          <div
+            class="form-group"
+            id="weekday-picker-group"
+            style="display: none"
+          >
+            <label>重複於每週</label>
             <select id="edit-todo-weekday">
-              <option value="">不分配</option>
+              <option value="">選擇星期</option>
               <option value="mon">星期一</option>
               <option value="tue">星期二</option>
               <option value="wed">星期三</option>

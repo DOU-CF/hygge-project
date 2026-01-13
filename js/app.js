@@ -30,6 +30,27 @@ class AppState {
   updateTodo(id, updates) {
     const todo = this.todos.find((t) => t.id === id);
     if (todo) {
+      // ✨ 特殊處理：重複任務的完成狀態
+      if (todo.taskType === "recurring" && updates.completed !== undefined) {
+        // 重複任務不直接設置 completed
+        // 而是記錄具體日期的完成狀態
+        if (updates.date) {
+          // 初始化 completionRecords
+          if (!todo.completionRecords) {
+            todo.completionRecords = {};
+          }
+          // 記錄該日期的完成狀態
+          todo.completionRecords[updates.date] = updates.completed;
+          console.log(
+            `✅ 重複任務完成記錄已更新: ${updates.date} = ${updates.completed}`
+          );
+        }
+        // 刪除 updates 中的 completed，避免修改主狀態
+        delete updates.completed;
+        delete updates.date;
+      }
+
+      // 應用其他更新
       Object.assign(todo, updates);
       this.save();
       this.notifyAll();
@@ -228,6 +249,12 @@ class TodoApp {
     this.saveEditBtn = document.querySelector("#save-edit-btn");
     this.cancelEditBtn = document.querySelector("#cancel-edit-btn");
     this.closeEditModalBtn = document.querySelector("#close-edit-modal");
+
+    // ✨ 新增：任務類型選擇
+    this.taskTypeBtns = document.querySelectorAll(".task-type-btn");
+    this.datePickerGroup = document.querySelector("#date-picker-group");
+    this.weekdayPickerGroup = document.querySelector("#weekday-picker-group");
+    this.editDateInput = document.querySelector("#edit-todo-date");
   }
 
   bindEvents() {
@@ -267,6 +294,39 @@ class TodoApp {
       btn.addEventListener("click", () => {
         this.priorityBtns.forEach((b) => b.classList.remove("active"));
         btn.classList.add("active");
+      });
+    });
+
+    // ✨ 新增：任務類型切換
+    this.taskTypeBtns.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        // 移除所有 active
+        this.taskTypeBtns.forEach((b) => b.classList.remove("active"));
+        // 設定當前為 active
+        btn.classList.add("active");
+
+        const type = btn.dataset.type;
+
+        // 根據類型顯示/隱藏對應欄位
+        if (type === "once") {
+          // 單次任務：顯示日期選擇
+          this.datePickerGroup.style.display = "block";
+          this.weekdayPickerGroup.style.display = "none";
+
+          // 設定預設日期為今天
+          if (!this.editDateInput.value) {
+            const today = new Date().toISOString().split("T")[0];
+            this.editDateInput.value = today;
+          }
+        } else if (type === "recurring") {
+          // 重複任務：顯示星期選擇
+          this.datePickerGroup.style.display = "none";
+          this.weekdayPickerGroup.style.display = "block";
+        } else {
+          // 無時間安排：隱藏所有
+          this.datePickerGroup.style.display = "none";
+          this.weekdayPickerGroup.style.display = "none";
+        }
       });
     });
   }
@@ -399,18 +459,48 @@ class TodoApp {
   openEditModal(id) {
     const todo = this.todos.find((t) => t.id === id);
     if (!todo) return;
+
     this.currentEditId = id;
     this.editTextInput.value = todo.text;
     this.editProjectSelect.value = todo.project || "";
-    this.editWeekdaySelect.value = todo.weekDay || "";
     this.editProgressInput.value = todo.progress || 0;
     this.progressValue.textContent = `${todo.progress || 0}%`;
+
+    // ✨ 設定任務類型
+    const taskType = todo.taskType || "none";
+    this.taskTypeBtns.forEach((btn) => {
+      btn.classList.remove("active");
+      if (btn.dataset.type === taskType) {
+        btn.classList.add("active");
+      }
+    });
+
+    // ✨ 根據類型顯示對應欄位
+    if (taskType === "once") {
+      // 單次任務：顯示日期選擇
+      this.datePickerGroup.style.display = "block";
+      this.weekdayPickerGroup.style.display = "none";
+      this.editDateInput.value =
+        todo.date || new Date().toISOString().split("T")[0];
+    } else if (taskType === "recurring") {
+      // 重複任務：顯示星期選擇
+      this.datePickerGroup.style.display = "none";
+      this.weekdayPickerGroup.style.display = "block";
+      this.editWeekdaySelect.value = todo.weekDay || "";
+    } else {
+      // 無時間安排：隱藏所有
+      this.datePickerGroup.style.display = "none";
+      this.weekdayPickerGroup.style.display = "none";
+    }
+
+    // 優先級設定
     this.priorityBtns.forEach((btn) => {
       btn.classList.remove("active");
       if (btn.dataset.priority === todo.priority) {
         btn.classList.add("active");
       }
     });
+
     this.editModal.classList.add("active");
     this.editTextInput.focus();
     console.log("✅ 開啟編輯對話框:", todo);
@@ -429,21 +519,45 @@ class TodoApp {
       this.editTextInput.focus();
       return;
     }
+
     const todo = this.todos.find((t) => t.id === this.currentEditId);
     if (!todo) return;
+
+    // 基本資訊
     todo.text = text;
     todo.project = this.editProjectSelect.value || null;
-    todo.weekDay = this.editWeekdaySelect.value || null;
     todo.progress = parseInt(this.editProgressInput.value) || 0;
+
     const activePriorityBtn = document.querySelector(".priority-btn.active");
     todo.priority = activePriorityBtn
       ? activePriorityBtn.dataset.priority
       : null;
+
+    // ✨ 獲取任務類型
+    const activeTypeBtn = document.querySelector(".task-type-btn.active");
+    const taskType = activeTypeBtn ? activeTypeBtn.dataset.type : "none";
+
+    todo.taskType = taskType;
+
+    // ✨ 根據類型保存不同欄位
+    if (taskType === "once") {
+      // 單次任務：保存日期，清除星期
+      todo.date = this.editDateInput.value || null;
+      todo.weekDay = null;
+    } else if (taskType === "recurring") {
+      // 重複任務：保存星期，清除日期
+      todo.weekDay = this.editWeekdaySelect.value || null;
+      todo.date = null;
+    } else {
+      // 無時間安排：清除所有
+      todo.date = null;
+      todo.weekDay = null;
+    }
+
     this.saveTodos();
     this.render();
     this.closeEditModal();
-    if (weeklyPlanner) weeklyPlanner.render();
-    if (ganttChart) ganttChart.render();
+
     console.log("✅ 任務已更新:", todo);
   }
 }
@@ -1326,6 +1440,14 @@ class WeeklyPlanner {
     return `${date.getMonth() + 1}/${date.getDate()}`;
   }
 
+  // ✨ 新增：格式化日期用於完成記錄（YYYY-MM-DD）
+  formatDateForRecord(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+
   updateWeekInfo() {
     const weekData = this.getCurrentWeekDates();
     if (this.weekNumberSpan) {
@@ -1350,8 +1472,6 @@ class WeeklyPlanner {
 
   render() {
     this.updateWeekInfo();
-
-    // 🆕 更新每個星期欄位的日期
     this.updateDayHeaders();
 
     // 清空所有欄位
@@ -1363,29 +1483,47 @@ class WeeklyPlanner {
 
     const weekData = this.getCurrentWeekDates();
 
-    // ✅ 新版代碼：同時支持 weekDay 和 days
     window.todos.forEach((todo) => {
-      // 🔧 支持兩種數據格式：
-      // 1. weekDay (字串) - 新版編輯對話框使用
-      // 2. days (陣列) - 舊版或多天任務
+      // ✨ 處理單次任務（只在特定日期顯示）
+      if (todo.taskType === "once" && todo.date) {
+        const taskDate = new Date(todo.date + "T00:00:00"); // 加上時間避免時區問題
 
-      if (todo.weekDay) {
-        // 處理單個星期（字串格式）
+        // 檢查日期是否在當前週
+        const days = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+        days.forEach((day) => {
+          const dayDate = weekData.dates[day];
+
+          // 比較年月日（忽略時分秒）
+          if (
+            taskDate.getFullYear() === dayDate.getFullYear() &&
+            taskDate.getMonth() === dayDate.getMonth() &&
+            taskDate.getDate() === dayDate.getDate()
+          ) {
+            const column = this.dayColumns[day];
+            if (column) {
+              const taskElement = this.createTaskElement(todo);
+              column.appendChild(taskElement);
+            }
+          }
+        });
+      }
+      // ✨ 處理重複任務（每週同一天顯示）
+      else if (todo.taskType === "recurring" && todo.weekDay) {
         const column = this.dayColumns[todo.weekDay];
         if (column) {
           const taskElement = this.createTaskElement(todo);
           column.appendChild(taskElement);
         }
-      } else if (todo.days && Array.isArray(todo.days)) {
-        // 處理多個星期（陣列格式）
-        todo.days.forEach((day) => {
-          const column = this.dayColumns[day];
-          if (column) {
-            const taskElement = this.createTaskElement(todo);
-            column.appendChild(taskElement);
-          }
-        });
       }
+      // 🔧 向下兼容舊數據（沒有 taskType 但有 weekDay 的任務）
+      else if (!todo.taskType && todo.weekDay) {
+        const column = this.dayColumns[todo.weekDay];
+        if (column) {
+          const taskElement = this.createTaskElement(todo);
+          column.appendChild(taskElement);
+        }
+      }
+      // 注意：taskType === "none" 的任務不會顯示在周計劃
     });
 
     this.highlightToday();
@@ -1416,7 +1554,25 @@ class WeeklyPlanner {
     const li = document.createElement("li");
     li.className = "week-task-item";
     li.dataset.id = todo.id;
-    if (todo.completed) {
+
+    // ✨ 判斷是否已完成（支持重複任務的分日期完成）
+    let isCompleted = false;
+
+    if (todo.taskType === "recurring") {
+      // 重複任務：檢查當前日期是否已完成
+      const weekData = this.getCurrentWeekDates();
+      const targetDate = weekData.dates[todo.weekDay];
+
+      if (targetDate && todo.completionRecords) {
+        const dateStr = this.formatDateForRecord(targetDate);
+        isCompleted = todo.completionRecords[dateStr] === true;
+      }
+    } else {
+      // 單次任務或無時間任務：使用 completed 欄位
+      isCompleted = todo.completed === true;
+    }
+
+    if (isCompleted) {
       li.classList.add("completed");
     }
 
@@ -1453,8 +1609,8 @@ class WeeklyPlanner {
       }
       e.stopPropagation();
       // 觸發待辦清單的編輯功能
-      if (window.todoApp && window.todoApp.editTodo) {
-        window.todoApp.editTodo(todo.id);
+      if (window.todoApp && window.todoApp.openEditModal) {
+        window.todoApp.openEditModal(todo.id);
       }
     });
 
@@ -1467,7 +1623,31 @@ class WeeklyPlanner {
   }
 
   completeTodo(id) {
-    this.appState.updateTodo(id, { completed: true });
+    const todo = window.todos.find((t) => t.id === id);
+    if (!todo) return;
+
+    // ✨ 重複任務：需要知道是哪一天完成的
+    if (todo.taskType === "recurring") {
+      // 找出這個任務在哪一天（根據當前顯示的週）
+      const weekData = this.getCurrentWeekDates();
+      const targetDate = weekData.dates[todo.weekDay];
+
+      if (targetDate) {
+        const dateStr = this.formatDateForRecord(targetDate);
+
+        // 更新該日期的完成狀態
+        this.appState.updateTodo(id, {
+          completed: true,
+          date: dateStr, // 傳遞日期給 updateTodo
+        });
+
+        console.log(`✅ 重複任務標記完成: ${todo.text} (${dateStr})`);
+      }
+    }
+    // ✨ 單次任務：直接標記為完成
+    else {
+      this.appState.updateTodo(id, { completed: true });
+    }
   }
 
   highlightToday() {
