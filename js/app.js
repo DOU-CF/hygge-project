@@ -1120,11 +1120,21 @@ class NoteManager {
 }
 
 // ==================== 🌤️ Day 7: 天氣功能 ====================
+// ==================== 🌤️ Day 7: 天氣功能 ====================
 class WeatherManager {
   constructor() {
     console.log("🌤️ WeatherManager 初始化中...");
-    this.apiKey = "6ff75519f2f400207595592ab3ff4f45";
-    this.city = this.loadCity() || "Kaohsiung";
+
+    // ✅ 從 AppConfig 讀取
+    if (window.AppConfig && window.AppConfig.weather) {
+      this.apiUrl = window.AppConfig.weather.apiUrl;
+      this.city = this.loadCity() || window.AppConfig.weather.defaultCity;
+    } else {
+      console.error("❌ AppConfig 未載入！");
+      alert("配置文件載入失敗，請重新整理頁面");
+      return;
+    }
+
     this.weatherData = null;
     this.init();
   }
@@ -1166,11 +1176,14 @@ class WeatherManager {
   async fetchWeather() {
     try {
       this.showLoading();
-      const url = `https://api.openweathermap.org/data/2.5/weather?q=${this.city}&appid=${this.apiKey}&units=metric&lang=zh_tw`;
+      // ✅ 使用後端 API
+      const url = `${this.apiUrl}?city=${this.city}`;
       const response = await fetch(url);
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
+
       const data = await response.json();
       this.weatherData = data;
       this.render();
